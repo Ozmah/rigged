@@ -1,0 +1,8 @@
+node_modules
+.turbo
+
+.agents/
+.env
+.env.local
+.env.develop
+.env.prod
