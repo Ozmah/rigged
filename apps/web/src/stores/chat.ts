@@ -88,6 +88,11 @@ export interface ChatState {
 		messagesPerMinute: number;
 		captureStartTime?: Date;
 	};
+
+	debug: {
+		chatInterval?: NodeJS.Timeout;
+		isChatGenerating: boolean;
+	};
 }
 
 /**
@@ -118,6 +123,11 @@ const initialState: ChatState = {
 		totalMessages: 0,
 		uniqueParticipants: 0,
 		messagesPerMinute: 0,
+	},
+
+	debug: {
+		chatInterval: undefined,
+		isChatGenerating: false,
 	},
 };
 
@@ -221,6 +231,140 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 			},
 		};
 	});
+};
+
+export const startTestMessageGeneration = () => {
+	const chatterNames = ["Chayote", "Platano", "Sandia", "Manzana"];
+
+	const GAMING_MESSAGES = [
+		"gg",
+		"poggers",
+		"let's go!",
+		"clutch",
+		"ez clap",
+		"omg",
+		"noway",
+		"insane",
+		"wp",
+		"rip",
+		"Hay pick!",
+	];
+
+	const EMOTE_MESSAGES = [
+		"Kappa",
+		"PogChamp",
+		"EZ Clap",
+		"5Head",
+		"OMEGALUL",
+		"MonkaS",
+		"Pepega",
+		"KEKW",
+		"Sadge",
+		"Copium",
+	];
+
+	const CHAT_MESSAGES = [
+		"hi",
+		"hello",
+		"sup",
+		"yo",
+		"hey",
+		"what's up",
+		"how's it going",
+		"nice",
+		"cool",
+		"awesome",
+	];
+
+	const HYPE_MESSAGES = [
+		"HYPE",
+		"LET'S GOOOO",
+		"POGGERS",
+		"SHEESH",
+		"FIRE",
+		"CLEAN",
+		"NASTY",
+		"CRACKED",
+		"BUILT DIFFERENT",
+		"NO CAP",
+	];
+
+	const TOXIC_MESSAGES = [
+		"Quítate esa chingadera!",
+		"No merecíamos ganar",
+		"ggn't",
+		"Manau está tirando",
+		"Aparte de dps, también tengo que tanquear?",
+	];
+
+	const ALL_MESSAGES = [
+		...GAMING_MESSAGES,
+		...EMOTE_MESSAGES,
+		...CHAT_MESSAGES,
+		...HYPE_MESSAGES,
+		...TOXIC_MESSAGES,
+	];
+
+	const interval = setInterval(() => {
+		const randomChatter =
+			chatterNames[Math.floor(Math.random() * chatterNames.length)];
+		const randomMessage =
+			ALL_MESSAGES[Math.floor(Math.random() * ALL_MESSAGES.length)];
+		const fakeMessage: EventSubChatMessage = {
+			broadcaster_user_id: "77305523",
+			broadcaster_user_login: "ozmah",
+			broadcaster_user_name: "Ozmah",
+			chatter_user_id: `${Math.random().toString().slice(2, 10)}`,
+			chatter_user_login: randomChatter.toLowerCase(),
+			chatter_user_name: randomChatter,
+			message_id: `${Math.random().toString(36).slice(2, 11)}`,
+			message: {
+				text: randomMessage,
+				fragments: [
+					{
+						type: "text",
+						text: randomMessage,
+					},
+				],
+			},
+			color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Random hex color
+			badges: [], // Empty array for simplicity
+			message_type: "text",
+			cheer: undefined, // No bits for fake messages
+			reply: undefined, // No replies for fake messages
+			channel_points_custom_reward_id: undefined,
+		};
+		addChatMessage(fakeMessage);
+	}, 2000);
+
+	chatStore.setState((state) => ({
+		...state,
+		debug: {
+			...state.debug,
+			chatInterval: interval,
+			isChatGenerating: true,
+		},
+	}));
+	console.log(
+		`START FN: Chat Generating: ${chatStore.state.debug.isChatGenerating}`,
+	);
+	console.log(chatStore.state.debug);
+};
+
+export const stopTestMessageGeneration = () => {
+	if (!chatStore.state.debug.chatInterval) {
+		return;
+	}
+	const currentIntervalId = chatStore.state.debug.chatInterval;
+	chatStore.setState((state) => ({
+		...state,
+		debug: {
+			...state.debug,
+			chatInterval: undefined,
+			isChatGenerating: false,
+		},
+	}));
+	clearInterval(currentIntervalId);
 };
 
 /**

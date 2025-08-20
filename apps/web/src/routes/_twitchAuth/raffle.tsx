@@ -25,7 +25,9 @@ import {
 	chatStore,
 	executeRaffle,
 	startRaffleCapture,
+	startTestMessageGeneration,
 	stopRaffleCapture,
+	stopTestMessageGeneration,
 	updateRaffleConfig,
 } from "@/stores/chat";
 
@@ -46,8 +48,32 @@ function RaffleComponent() {
 		(state) => state.connectionStatus,
 	);
 
+	// Debug
+	const isGeneratingMessages = useStore(
+		chatStore,
+		(state) => state.debug.isChatGenerating,
+	);
+
 	// EventSub connection (auto-connects when authenticated)
 	const { isConnected, isConnecting } = useTwitchEventSub();
+
+	// Need implementation for a debug mode
+	// const debugMode = useStore(authStore, (state) => state.debugMode);
+	// if (debugMode)
+	const handleAddTestMessages = () => {
+		startTestMessageGeneration();
+		toast.success("🎲 Generando Mensajes", {
+			description: "Creando mensajes para simular rifas",
+			duration: 3000,
+		});
+	};
+
+	const handleStopTestMessages = () => {
+		stopTestMessageGeneration();
+		toast.success("🎲 Mensajes detenidos", {
+			duration: 3000,
+		});
+	};
 
 	const handleStartCapture = () => {
 		startRaffleCapture();
@@ -165,6 +191,38 @@ function RaffleComponent() {
 										className="h-10 w-full"
 									>
 										Sortear ({participants.length})
+									</Button>
+								</div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</section>
+
+			{/* Debug Tooling */}
+			<section className="my-5 rounded-lg border bg-card">
+				<Card className="gap-1 border-0 bg-transparent">
+					<CardHeader />
+					<CardContent>
+						<div className="grid grid-cols-1 gap-4">
+							<div className="grid grid-cols-1 gap-2">
+								<div className="flex items-end">
+									<Button
+										onClick={
+											isGeneratingMessages
+												? handleStopTestMessages
+												: handleAddTestMessages
+										}
+										variant={
+											isGeneratingMessages
+												? "secondary"
+												: "default"
+										}
+										className="h-10 w-full"
+									>
+										{isGeneratingMessages
+											? "Detener"
+											: "Generar Mensajes"}
 									</Button>
 								</div>
 							</div>
