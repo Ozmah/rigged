@@ -186,6 +186,15 @@ export class TwitchEventSubWebSocket {
 		this.ws.onclose = (event) => {
 			console.log("EventSub WebSocket closed:", event.code, event.reason);
 
+			if (
+				!this.reconnectUrl ||
+				!this.onMessageCallback ||
+				!this.onConnectionCallback ||
+				!this.onErrorCallback
+			) {
+				return;
+			}
+
 			if (event.code === 4003) {
 				console.error(
 					"ERROR 4003: Connection unused - subscription not created within 10 seconds",
@@ -209,12 +218,16 @@ export class TwitchEventSubWebSocket {
 			this.onConnectionCallback?.(false);
 
 			if (event.code !== 1000) {
+				// Snapshot of functions to avoid noNonNullAssertion
+				const messageCallback = this.onMessageCallback;
+				const connectionCallback = this.onConnectionCallback;
+				const errorCallback = this.onErrorCallback;
 				setTimeout(() => {
 					if (this.reconnectUrl) {
 						this.connect(
-							this.onMessageCallback!,
-							this.onConnectionCallback!,
-							this.onErrorCallback!,
+							messageCallback,
+							connectionCallback,
+							errorCallback,
 						);
 					}
 				}, 3000);

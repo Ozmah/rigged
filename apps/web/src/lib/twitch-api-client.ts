@@ -195,7 +195,7 @@ export class TwitchAPI {
 		console.log(
 			"🎫 Access token:",
 			accessToken
-				? accessToken.substring(0, 10) + "..."
+				? `${accessToken.substring(0, 10)}...`
 				: "null/undefined",
 		);
 

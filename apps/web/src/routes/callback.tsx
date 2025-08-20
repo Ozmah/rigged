@@ -46,7 +46,7 @@ function AuthCallbackComponent() {
 		};
 
 		processCallback();
-	}, []);
+	});
 
 	if (authError) {
 		return (

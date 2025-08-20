@@ -1,4 +1,4 @@
-import { redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,11 +11,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { routeTree } from "@/routeTree.gen";
 import { authStore, clearAuth } from "@/stores/auth";
 
 export function UserDropdown() {
-	const router = useRouter();
 	const navigate = useNavigate();
 	const { user } = useStore(authStore, (state) => ({
 		user: state.user,

@@ -3,9 +3,11 @@ import { useStore } from "@tanstack/react-store";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
-import { TwitchEventSubWebSocket } from "@/lib/twitch-eventsub-client";
 import { authStore } from "@/stores/auth";
 import { addChatMessage, chatStore, setConnectionStatus } from "@/stores/chat";
+
+const MAX_RETRIES = Number(import.meta.env.VITE_MAX_RETRIES) || 5;
+const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
 
 /**
  * Hook for managing EventSub WebSocket connection and chat integration
@@ -27,8 +29,6 @@ export function useTwitchEventSub() {
 	// Retry logic state
 	const retryCountRef = useRef(0);
 	const retryTimeoutRef = useRef<number | null>(null);
-	const maxRetries = 5;
-	const baseRetryDelay = 1000; // 1 second
 
 	// 🔍 DEBUG: Track what's causing re-renders
 	const renderCount = useRef(0);
@@ -77,56 +77,52 @@ export function useTwitchEventSub() {
 	/**
 	 * Schedules a retry attempt with exponential backoff
 	 */
-	const scheduleRetry = useCallback(
-		(errorMessage: string) => {
-			console.log(`🔄 scheduleRetry called with error: ${errorMessage}`);
+	const scheduleRetry = useCallback((errorMessage: string) => {
+		console.log(`🔄 scheduleRetry called with error: ${errorMessage}`);
 
-			// Clear any existing retry timeout
-			if (retryTimeoutRef.current) {
-				clearTimeout(retryTimeoutRef.current);
-				retryTimeoutRef.current = null;
-			}
+		// Clear any existing retry timeout
+		if (retryTimeoutRef.current) {
+			clearTimeout(retryTimeoutRef.current);
+			retryTimeoutRef.current = null;
+		}
 
-			// Check if we should retry
-			if (retryCountRef.current < maxRetries) {
-				const retryDelay =
-					baseRetryDelay * Math.pow(2, retryCountRef.current);
-				retryCountRef.current += 1;
+		// Check if we should retry
+		if (retryCountRef.current < MAX_RETRIES) {
+			const retryDelay = BASE_RETRY_DELAY * 2 ** retryCountRef.current;
+			retryCountRef.current += 1;
 
+			console.log(
+				`🔄 Scheduling retry attempt ${retryCountRef.current}/${MAX_RETRIES} in ${retryDelay}ms`,
+			);
+			setConnectionStatus(
+				"error",
+				`${errorMessage} (retry ${retryCountRef.current}/${MAX_RETRIES} in ${retryDelay / 1000}s)`,
+			);
+
+			retryTimeoutRef.current = window.setTimeout(() => {
 				console.log(
-					`🔄 Scheduling retry attempt ${retryCountRef.current}/${maxRetries} in ${retryDelay}ms`,
+					`🚀 Executing retry attempt ${retryCountRef.current} - setting status to disconnected`,
 				);
-				setConnectionStatus(
-					"error",
-					`${errorMessage} (retry ${retryCountRef.current}/${maxRetries} in ${retryDelay / 1000}s)`,
-				);
+				// Trigger reconnection by setting status to disconnected
+				setConnectionStatus("disconnected");
+			}, retryDelay);
+		} else {
+			// Max retries reached - give up
+			console.error(
+				`❌ Max retries (${MAX_RETRIES}) reached. Giving up.`,
+			);
+			setConnectionStatus(
+				"error",
+				`${errorMessage} - Max retries reached`,
+			);
+			retryCountRef.current = 0; // Reset for future attempts
 
-				retryTimeoutRef.current = window.setTimeout(() => {
-					console.log(
-						`🚀 Executing retry attempt ${retryCountRef.current} - setting status to disconnected`,
-					);
-					// Trigger reconnection by setting status to disconnected
-					setConnectionStatus("disconnected");
-				}, retryDelay);
-			} else {
-				// Max retries reached - give up
-				console.error(
-					`❌ Max retries (${maxRetries}) reached. Giving up.`,
-				);
-				setConnectionStatus(
-					"error",
-					`${errorMessage} - Max retries reached`,
-				);
-				retryCountRef.current = 0; // Reset for future attempts
-
-				toast.error("❌ Error de conexión", {
-					description: `Error al conectar con Twitch: ${errorMessage}. Máximos reintentos alcanzados.`,
-					duration: 8000,
-				});
-			}
-		},
-		[maxRetries, baseRetryDelay],
-	);
+			toast.error("❌ Error de conexión", {
+				description: `Error al conectar con Twitch: ${errorMessage}. Máximos reintentos alcanzados.`,
+				duration: 8000,
+			});
+		}
+	}, []);
 
 	/**
 	 * Handles EventSub connection errors
@@ -173,6 +169,19 @@ export function useTwitchEventSub() {
 	}, [twitchAPI]);
 
 	/**
+	 * Cleanly disconnects from EventSub WebSocket and clears references
+	 * PATTERN: Like rigged2 - nullify the ref after disconnect
+	 */
+	const disconnect = useCallback(() => {
+		if (twitchEventSubWebSocket) {
+			twitchEventSubWebSocket.disconnect();
+		}
+
+		subscriptionIdRef.current = null;
+		setConnectionStatus("disconnected");
+	}, [twitchEventSubWebSocket]);
+
+	/**
 	 * Establishes EventSub WebSocket connection and creates chat subscription
 	 * Critical: Creates subscription within 10 seconds of session_welcome to avoid timeout
 	 * PATTERN: Creates fresh EventSubWebSocket instance like rigged2
@@ -217,7 +226,8 @@ export function useTwitchEventSub() {
 				handleError,
 			);
 
-			const sessionId = await twitchEventSubWebSocket.waitForSessionWelcome();
+			const sessionId =
+				await twitchEventSubWebSocket.waitForSessionWelcome();
 
 			const subscriptionResponse =
 				await twitchAPI.createChatMessageSubscription(
@@ -252,25 +262,18 @@ export function useTwitchEventSub() {
 		isAuthenticated,
 		user,
 		accessToken,
+		twitchAPI.createChatMessageSubscription,
+		twitchAPI.getCurrentUser,
+		twitchEventSubWebSocket.connect,
+		twitchEventSubWebSocket.isConnected,
+		twitchEventSubWebSocket.waitForSessionWelcome,
 		handleChatMessage,
 		handleConnectionChange,
 		handleError,
 		diagnoseSubscriptions,
 		scheduleRetry,
+		disconnect,
 	]);
-
-	/**
-	 * Cleanly disconnects from EventSub WebSocket and clears references
-	 * PATTERN: Like rigged2 - nullify the ref after disconnect
-	 */
-	const disconnect = useCallback(() => {
-		if (twitchEventSubWebSocket) {
-			twitchEventSubWebSocket.disconnect();
-		}
-
-		subscriptionIdRef.current = null;
-		setConnectionStatus("disconnected");
-	}, []);
 
 	/**
 	 * Toggles connection state between connected and disconnected

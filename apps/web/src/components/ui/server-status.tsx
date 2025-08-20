@@ -26,7 +26,7 @@ const sizeConfig = {
 	lg: "w-4 h-4",
 };
 
-const variantConfig = {
+const _variantConfig = {
 	default: "",
 	subtle: "ping-subtle",
 	alert: "ping-alert",
