@@ -65,7 +65,10 @@ const saveAuthState = (state: AuthState): void => {
 		};
 
 		if (state.isAuthenticated && state.accessToken && state.user) {
-			localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(persistedData));
+			localStorage.setItem(
+				AUTH_STORAGE_KEY,
+				JSON.stringify(persistedData),
+			);
 		} else {
 			// Clear localStorage if not authenticated
 			localStorage.removeItem(AUTH_STORAGE_KEY);

@@ -9,11 +9,13 @@ import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { UserDropdown } from "@/components/user-dropdown";
-import { TwitchAPI } from "@/lib/twitch-api-client";
+import type { TwitchAPI } from "@/lib/twitch-api-client";
+import type { TwitchEventSubWebSocket } from "@/lib/twitch-eventsub-client";
 import "../index.css";
 
 export interface RouterAppContext {
 	twitchAPI: TwitchAPI;
+	twitchEventSubWebSocket: TwitchEventSubWebSocket;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({

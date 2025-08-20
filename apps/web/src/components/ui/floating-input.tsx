@@ -27,7 +27,10 @@ export function FloatingInput({
 		<div className={cn("relative", className)}>
 			<label
 				htmlFor={id}
-				className={cn("floating-label", isFloating && "floating-label-active")}
+				className={cn(
+					"floating-label",
+					isFloating && "floating-label-active",
+				)}
 			>
 				{label}
 			</label>

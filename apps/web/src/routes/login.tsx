@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+// import { initiateTwitchLogin } from "@/lib/twitch-auth";
+// import { createGuestGuard } from "@/lib/router-guards";
+import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,9 +10,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-// import { initiateTwitchLogin } from "@/lib/twitch-auth";
-// import { createGuestGuard } from "@/lib/router-guards";
-import { useRouteContext } from '@tanstack/react-router';
 import { authStore, setAuthError } from "@/stores/auth";
 
 export const Route = createFileRoute("/login")({
@@ -20,7 +19,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginComponent() {
 	const authState = useStore(authStore);
-	const context = useRouteContext({ from: '/login' });
+	const context = useRouteContext({ from: "/login" });
 
 	const handleTwitchLogin = async () => {
 		try {
@@ -28,7 +27,9 @@ function LoginComponent() {
 		} catch (error) {
 			console.error("Login error:", error);
 			setAuthError(
-				error instanceof Error ? error.message : "Failed to initiate login",
+				error instanceof Error
+					? error.message
+					: "Failed to initiate login",
 			);
 		}
 	};
@@ -38,7 +39,9 @@ function LoginComponent() {
 			<div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
 				<div className="text-center">
 					<h2 className="mb-2 font-bold text-2xl">Conectando...</h2>
-					<p className="text-muted-foreground">Redirigiendo a Twitch...</p>
+					<p className="text-muted-foreground">
+						Redirigiendo a Twitch...
+					</p>
 				</div>
 			</div>
 		);
@@ -60,12 +63,20 @@ function LoginComponent() {
 						<CardContent>
 							<div className="flex flex-col gap-6">
 								<div className="space-y-2 text-center">
-									<h3 className="font-medium">¿Qué puedes hacer?</h3>
+									<h3 className="font-medium">
+										¿Qué puedes hacer?
+									</h3>
 									<ul className="space-y-1 text-muted-foreground text-sm">
-										<li>• Sorteos en tiempo real del chat</li>
-										<li>• Múltiples ganadores configurables</li>
+										<li>
+											• Sorteos en tiempo real del chat
+										</li>
+										<li>
+											• Múltiples ganadores configurables
+										</li>
 										<li>• Exportar resultados completos</li>
-										<li>• Rondas múltiples sin duplicados</li>
+										<li>
+											• Rondas múltiples sin duplicados
+										</li>
 									</ul>
 								</div>
 

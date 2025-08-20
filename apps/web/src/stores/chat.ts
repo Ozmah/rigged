@@ -415,7 +415,8 @@ export const getRaffleStats = () => {
 
 	let messagesPerMinute = 0;
 	if (startTime) {
-		const minutesElapsed = (now.getTime() - startTime.getTime()) / (1000 * 60);
+		const minutesElapsed =
+			(now.getTime() - startTime.getTime()) / (1000 * 60);
 		if (minutesElapsed > 0) {
 			messagesPerMinute = Math.round(
 				state.stats.totalMessages / minutesElapsed,

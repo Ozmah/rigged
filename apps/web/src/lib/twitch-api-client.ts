@@ -1,12 +1,12 @@
+import { authStore, clearAuth } from "@/stores/auth";
 import {
+	type ChattersResponse,
+	ChattersResponseSchema,
 	type TokenValidation,
 	TokenValidationSchema,
 	type TwitchUser,
 	TwitchUsersResponseSchema,
-	type ChattersResponse,
-	ChattersResponseSchema,
 } from "./twitch-schemas";
-import { authStore, clearAuth } from "@/stores/auth";
 
 // ================================
 // 🔧 INTERFACES & TYPES
@@ -367,7 +367,9 @@ export class TwitchAPI {
 			);
 		}
 
-		const redirectUri = `${window.location.origin}/auth/callback`;
+		// This either needs to be added to .env
+		// or a more elegant way to do it
+		const redirectUri = `${window.location.origin}/callback`;
 
 		return { clientId, redirectUri };
 	}
@@ -377,6 +379,9 @@ export class TwitchAPI {
 	 */
 	async initiateTwitchLogin(): Promise<void> {
 		const { clientId, redirectUri } = this.validateAuthEnvironment();
+
+		console.log(`CLIENT ID: ${clientId}`);
+		console.log(`REDIRECT URI: ${redirectUri}`);
 
 		const authUrl = this.createTwitchAuthUrl({
 			clientId,
@@ -548,11 +553,12 @@ export class TwitchAPI {
 	 * Uses authStore.state.accessToken for authentication
 	 */
 	async getCurrentUser(): Promise<TwitchUser> {
-		// TODO: Implement - Get authenticated user data from /users endpoint
-		// - Use this.request() method for API call
-		// - Validate response with TwitchUsersResponseSchema
-		// - Return first user from data array
-		throw new Error("Method not implemented yet");
+		const response = await this.request("/users");
+		const validatedResponse = TwitchUsersResponseSchema.parse(response);
+		if (validatedResponse.data.length === 0) {
+			throw new Error("No user data returned from Twitch API");
+		}
+		return validatedResponse.data[0];
 	}
 
 	// ================================
@@ -598,10 +604,7 @@ export class TwitchAPI {
 		total_cost: number;
 		max_total_cost: number;
 	}> {
-		// TODO: Implement - Get all EventSub subscriptions
-		// - Use this.request() with /eventsub/subscriptions endpoint
-		// - Return subscription list for debugging purposes
-		throw new Error("Method not implemented yet");
+		return this.request("/eventsub/subscriptions");
 	}
 
 	/**
@@ -612,21 +615,52 @@ export class TwitchAPI {
 		broadcasterId: string,
 		userId: string,
 	): Promise<{ data: Array<{ id: string; status: string; type: string }> }> {
-		// TODO: Implement - Create EventSub subscription for chat messages
-		// - Validate input parameters (sessionId, broadcasterId, userId)
-		// - Use this.post() with /eventsub/subscriptions endpoint
-		// - Handle specific EventSub error responses
-		throw new Error("Method not implemented yet");
+		if (!sessionId?.trim() || !broadcasterId?.trim() || !userId?.trim()) {
+			throw new Error(
+				"Session ID, broadcaster ID, and user ID are required",
+			);
+		}
+		if (!/^\d+$/.test(broadcasterId) || !/^\d+$/.test(userId)) {
+			throw new Error("Broadcaster ID and user ID must be numeric");
+		}
+		const subscriptionData = {
+			type: "channel.chat.message",
+			version: "1",
+			condition: {
+				broadcaster_user_id: broadcasterId,
+				user_id: userId,
+			},
+			transport: {
+				method: "websocket",
+				session_id: sessionId,
+			},
+		};
+		return this.post<{
+			data: Array<{ id: string; status: string; type: string }>;
+		}>("/eventsub/subscriptions", subscriptionData);
 	}
 
 	/**
 	 * Deletes an EventSub subscription
 	 */
 	async deleteEventSubSubscription(subscriptionId: string): Promise<void> {
-		// TODO: Implement - Delete EventSub subscription
-		// - Use DELETE method with /eventsub/subscriptions endpoint
-		// - Handle deletion errors appropriately
-		throw new Error("Method not implemented yet");
+		const accessToken = authStore.state.accessToken;
+		const response = await fetch(
+			`${this.config.baseURL}/eventsub/subscriptions?id=${subscriptionId}`,
+			{
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					"Client-Id": this.config.clientId,
+				},
+			},
+		);
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(
+				`Failed to delete subscription: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`,
+			);
+		}
 	}
 
 	// ================================
@@ -712,76 +746,5 @@ export class TwitchAPI {
 		// - Use this.request() with /shared_chat/session endpoint
 		// - Return session participants and metadata
 		throw new Error("Method not implemented yet");
-	}
-}
-
-// ================================
-// 🌐 EVENTSUB WEBSOCKET CLASS
-// ================================
-
-/**
- * EventSub WebSocket connection manager
- * Handles real-time chat message subscriptions via WebSocket
- */
-export class EventSubWebSocket {
-	private ws: WebSocket | null = null;
-	private sessionId: string | null = null;
-	private keepaliveTimeoutId: number | null = null;
-	private reconnectUrl: string | null = null;
-	private sessionWelcomeReceived = false;
-	private sessionWelcomePromise: Promise<string> | null = null;
-	private sessionWelcomeResolve?: (sessionId: string) => void;
-	private sessionWelcomeReject?: (error: Error) => void;
-
-	private onMessageCallback?: (message: EventSubChatMessage) => void;
-	private onConnectionCallback?: (connected: boolean) => void;
-	private onErrorCallback?: (error: Error) => void;
-
-	/**
-	 * Connects to EventSub WebSocket
-	 */
-	async connect(
-		onMessage: (message: EventSubChatMessage) => void,
-		onConnection: (connected: boolean) => void,
-		onError: (error: Error) => void,
-	): Promise<void> {
-		// TODO: Implement full EventSub WebSocket connection logic
-		// - Connect to wss://eventsub.wss.twitch.tv/ws
-		// - Handle session_welcome, keepalive, notification messages
-		// - Manage reconnection logic
-		// - Setup proper error handling
-		throw new Error("EventSub WebSocket not implemented yet");
-	}
-
-	/**
-	 * Gets the current session ID
-	 */
-	getSessionId(): string | null {
-		return this.sessionId;
-	}
-
-	/**
-	 * Waits for the session_welcome message and returns the session ID
-	 */
-	async waitForSessionWelcome(): Promise<string> {
-		// TODO: Implement session welcome waiting logic
-		throw new Error("Method not implemented yet");
-	}
-
-	/**
-	 * Disconnects from EventSub WebSocket
-	 */
-	disconnect(): void {
-		// TODO: Implement proper disconnection logic
-		// - Clear timeouts
-		// - Close WebSocket connection
-		// - Reset session state
-	}
-
-	/**
-	 * Checks if WebSocket is connected
-	 */
-	isConnected(): boolean {
-		return this.ws?.readyState === WebSocket.OPEN;
 	}
 }

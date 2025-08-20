@@ -7,8 +7,8 @@ type StatusConfig = {
 		ping?: boolean;
 		text?: string;
 		variant: string;
-	}
-}
+	};
+};
 
 interface ServerStatusProps {
 	status: ConnectionStatus;
@@ -38,7 +38,7 @@ export function ServerStatus({
 	size = "md",
 	variant = "default",
 	ping = true,
-	className
+	className,
 }: ServerStatusProps) {
 	const statusConfig = {
 		connected: {
@@ -79,7 +79,7 @@ export function ServerStatus({
 	return (
 		<div
 			className={cn(
-				"relative inline-flex items-center gap-3 rounded-lg bg-transparent border-0",
+				"relative inline-flex items-center gap-3 rounded-lg border-0 bg-transparent",
 				className,
 			)}
 			style={
@@ -94,7 +94,7 @@ export function ServerStatus({
 				{config.ping && (
 					<div
 						className={cn(
-							"absolute inset-0 rounded-full opacity-60 animate-ping",
+							"absolute inset-0 animate-ping rounded-full opacity-60",
 							config.color,
 							sizeClass,
 							config.variant,
@@ -102,7 +102,7 @@ export function ServerStatus({
 					/>
 				)}
 			</div>
-			<span className="text-sm font-medium text-card-foreground">
+			<span className="font-medium text-card-foreground text-sm">
 				{config.text}
 			</span>
 		</div>
