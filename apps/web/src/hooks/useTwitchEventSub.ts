@@ -13,10 +13,14 @@ import { addChatMessage, chatStore, setConnectionStatus } from "@/stores/chat";
  * PATTERN: Back to rigged2 working pattern - local instances, not singletons
  */
 export function useTwitchEventSub() {
-	const eventSubRef = useRef<TwitchEventSubWebSocket | null>(null);
+	// const eventSubRef = useRef<TwitchEventSubWebSocket | null>(null);
 	const twitchAPI = useRouteContext({
 		from: "/_twitchAuth",
 		select: (ctx) => ctx.twitchAPI,
+	});
+	const twitchEventSubWebSocket = useRouteContext({
+		from: "/_twitchAuth",
+		select: (ctx) => ctx.twitchEventSubWebSocket,
 	});
 	const subscriptionIdRef = useRef<string | null>(null);
 
@@ -42,38 +46,6 @@ export function useTwitchEventSub() {
 		chatStore,
 		(state) => state.connectionStatus,
 	);
-
-	// 🔍 DEBUG: Track dependency changes
-	const prevDeps = useRef({
-		user,
-		accessToken,
-		isAuthenticated,
-		connectionStatus,
-		twitchAPI,
-	});
-	if (
-		prevDeps.current.user !== user ||
-		prevDeps.current.accessToken !== accessToken ||
-		prevDeps.current.isAuthenticated !== isAuthenticated ||
-		prevDeps.current.connectionStatus !== connectionStatus ||
-		prevDeps.current.twitchAPI !== twitchAPI
-	) {
-		console.log("🔄 Dependencies changed:", {
-			userChanged: prevDeps.current.user !== user,
-			tokenChanged: prevDeps.current.accessToken !== accessToken,
-			authChanged: prevDeps.current.isAuthenticated !== isAuthenticated,
-			statusChanged:
-				prevDeps.current.connectionStatus !== connectionStatus,
-			apiChanged: prevDeps.current.twitchAPI !== twitchAPI,
-		});
-		prevDeps.current = {
-			user,
-			accessToken,
-			isAuthenticated,
-			connectionStatus,
-			twitchAPI,
-		};
-	}
 
 	/**
 	 * Processes incoming chat messages from EventSub WebSocket
@@ -217,7 +189,7 @@ export function useTwitchEventSub() {
 			return;
 		}
 
-		if (eventSubRef.current?.isConnected()) {
+		if (twitchEventSubWebSocket.isConnected()) {
 			return;
 		}
 
@@ -238,14 +210,14 @@ export function useTwitchEventSub() {
 			await twitchAPI.getCurrentUser();
 
 			// Create fresh TwitchEventSubWebSocket instance (like rigged2)
-			eventSubRef.current = new TwitchEventSubWebSocket();
-			await eventSubRef.current.connect(
+			// eventSubRef.current = new TwitchEventSubWebSocket();
+			await twitchEventSubWebSocket.connect(
 				handleChatMessage,
 				handleConnectionChange,
 				handleError,
 			);
 
-			const sessionId = await eventSubRef.current.waitForSessionWelcome();
+			const sessionId = await twitchEventSubWebSocket.waitForSessionWelcome();
 
 			const subscriptionResponse =
 				await twitchAPI.createChatMessageSubscription(
@@ -292,9 +264,8 @@ export function useTwitchEventSub() {
 	 * PATTERN: Like rigged2 - nullify the ref after disconnect
 	 */
 	const disconnect = useCallback(() => {
-		if (eventSubRef.current) {
-			eventSubRef.current.disconnect();
-			eventSubRef.current = null;
+		if (twitchEventSubWebSocket) {
+			twitchEventSubWebSocket.disconnect();
 		}
 
 		subscriptionIdRef.current = null;
@@ -369,7 +340,7 @@ export function useTwitchEventSub() {
 		diagnoseSubscriptions,
 
 		// Current session info
-		sessionId: eventSubRef.current?.getSessionId() || null,
+		sessionId: twitchEventSubWebSocket.getSessionId() || null,
 		subscriptionId: subscriptionIdRef.current,
 	};
 }
