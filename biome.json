@@ -27,7 +27,9 @@
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"formatWithErrors": true
 	},
 	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
@@ -42,16 +44,8 @@
 					"level": "error",
 					"fix": "safe",
 					"options": {
-						"attributes": [
-							"class",
-							"className"
-						],
-						"functions": [
-							"clsx",
-							"cva",
-							"tw",
-							"cn"
-						]
+						"attributes": ["class", "className"],
+						"functions": ["clsx", "cva", "tw", "cn"]
 					}
 				}
 			},
