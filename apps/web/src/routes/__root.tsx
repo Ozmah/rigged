@@ -53,12 +53,7 @@ function RootComponent() {
 				disableTransitionOnChange
 				storageKey="vite-ui-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<div className="absolute top-4 right-4 z-50">
-						<UserDropdown />
-					</div>
-					{isFetching ? <Loader /> : <Outlet />}
-				</div>
+				{isFetching ? <Loader /> : <Outlet />}
 				<Toaster richColors />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />

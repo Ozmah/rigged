@@ -4,6 +4,8 @@ import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 // Max messages to be kept in state
 const MAX_MESSAGES = 100;
 
+const RAFFLE_OPTIONS_STORAGE_KEY = "rigged-raffle-options";
+
 /**
  * Processed chat message for UI display
  */
@@ -51,15 +53,26 @@ export type ConnectionStatus =
 	| "reconnecting";
 
 /**
- * Raffle configuration
+ * Raffle configurations saved to Local Storage
  */
-export interface RaffleConfig {
-	keyword: string;
+export interface PersistedRaffleConfig {
+	advanced: boolean;
 	caseSensitive: boolean;
-	wholeWordOnly: boolean;
-	ignoreCommands: boolean;
-	maxWinners: number;
 	removeWinners: boolean;
+	followersOnly: boolean;
+	subsExtraTickets: boolean;
+	subsExtraValue: number;
+	vipsExtraTickets: boolean;
+	vipsExtraValue: number;
+	ignoreMods: boolean;
+	maxWinners: number;
+}
+
+/**
+ * All Raffle configuration
+ */
+export interface RaffleConfig extends PersistedRaffleConfig {
+	keyword: string;
 }
 
 /**
@@ -96,7 +109,95 @@ export interface ChatState {
 }
 
 /**
- * Initial chat state
+ * Save auth state to localStorage
+ */
+export const saveRaffleConfigState = (state: RaffleConfig): void => {
+	try {
+		const persistedData: PersistedRaffleConfig = {
+			advanced: state.advanced,
+			caseSensitive: state.caseSensitive,
+			removeWinners: state.removeWinners,
+			followersOnly: state.followersOnly,
+			subsExtraTickets: state.subsExtraTickets,
+			subsExtraValue: state.subsExtraValue,
+			vipsExtraTickets: state.vipsExtraTickets,
+			vipsExtraValue: state.vipsExtraValue,
+			ignoreMods: state.ignoreMods,
+			maxWinners: state.maxWinners,
+		};
+
+		localStorage.setItem(
+			RAFFLE_OPTIONS_STORAGE_KEY,
+			JSON.stringify(persistedData),
+		);
+	} catch (error) {
+		console.warn("Failed to save raffle state:", error);
+	}
+};
+
+/**
+ * Load auth state from localStorage
+ */
+export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
+	try {
+		const stored = localStorage.getItem(RAFFLE_OPTIONS_STORAGE_KEY);
+		if (!stored) return {};
+
+		const parsed: PersistedRaffleConfig = JSON.parse(stored);
+
+		return {
+			advanced: parsed.advanced,
+			caseSensitive: parsed.caseSensitive,
+			removeWinners: parsed.removeWinners,
+			followersOnly: parsed.followersOnly,
+			subsExtraTickets: parsed.subsExtraTickets,
+			subsExtraValue: parsed.subsExtraValue,
+			vipsExtraTickets: parsed.vipsExtraTickets,
+			vipsExtraValue: parsed.vipsExtraValue,
+			ignoreMods: parsed.ignoreMods,
+			maxWinners: parsed.maxWinners,
+		};
+	} catch (error) {
+		console.warn("Failed to load persisted raffle config state:", error);
+		localStorage.removeItem(RAFFLE_OPTIONS_STORAGE_KEY);
+		return {};
+	}
+};
+
+/**
+ * Initial chat state with comprehensive configuration documentation.
+ *
+ * Connection State:
+ * - connectionStatus: "disconnected" - Initial offline state before EventSub connection
+ * - connectionError: null - No connection errors present at startup
+ *
+ * Chat Configuration:
+ * - messages: [] - Empty message history at application start
+ * - maxMessages: 100 - Maximum number of messages retained in memory to prevent memory leaks
+ *
+ * Raffle Configuration:
+ * - keyword: "" - Empty keyword requiring user configuration before raffle capture can begin
+ * - advanced: false - Advanced options are disabled
+ * - caseSensitive: false - Case-insensitive keyword matching for better user experience
+ * - wholeWordOnly: false - Substring matching allows flexible keyword placement within messages
+ * - ignoreCommands: true - Automatically filters out bot commands (messages starting with !)
+ * - maxWinners: 1 - Default single winner selection for standard raffle operations
+ * - removeWinners: true - Previous winners are excluded from subsequent raffle rounds
+ *
+ * Raffle State Management:
+ * - participants: [] - No participants captured at startup
+ * - winners: [] - No winners selected initially
+ * - isCapturing: false - Raffle capture is disabled until explicitly started by user
+ * - currentRound: 0 - Raffle system starts at round zero
+ *
+ * Statistics Tracking:
+ * - totalMessages: 0 - Message counter starts at zero
+ * - uniqueParticipants: 0 - Participant tracking begins empty
+ * - messagesPerMinute: 0 - Performance metric initialized to zero
+ *
+ * Debug Configuration:
+ * - chatInterval: undefined - No test message generation running initially
+ * - isChatGenerating: false - Debug message generation is disabled by default
  */
 const initialState: ChatState = {
 	connectionStatus: "disconnected",
@@ -107,11 +208,17 @@ const initialState: ChatState = {
 
 	raffleConfig: {
 		keyword: "",
+		advanced: false,
 		caseSensitive: false,
-		wholeWordOnly: false,
-		ignoreCommands: true,
-		maxWinners: 1,
 		removeWinners: true,
+		followersOnly: false,
+		subsExtraTickets: false,
+		subsExtraValue: 0,
+		vipsExtraTickets: false,
+		vipsExtraValue: 0,
+		ignoreMods: false,
+		maxWinners: 1,
+		...loadPersistedRaffleConfigState(),
 	},
 
 	participants: [],
@@ -135,6 +242,12 @@ const initialState: ChatState = {
  * Chat store instance
  */
 export const chatStore = new Store<ChatState>(initialState);
+
+// Subscribe to state changes to persist Chat data
+chatStore.subscribe(() => {
+	const state = chatStore.state.raffleConfig;
+	saveRaffleConfigState(state);
+});
 
 /**
  * Sets connection status
@@ -234,59 +347,53 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 };
 
 export const startTestMessageGeneration = () => {
-	const chatterNames = ["Chayote", "Platano", "Sandia", "Manzana"];
+	const chatterNames = [
+		"CarlosDMBot",
+		"BrayamsBot",
+		"EbrionBot",
+		"ChecaBot",
+		"RammsirisBot",
+		"NavarritoBot",
+	];
 
 	const GAMING_MESSAGES = [
-		"gg",
+		"gg ez",
 		"poggers",
-		"let's go!",
-		"clutch",
-		"ez clap",
-		"omg",
-		"noway",
-		"insane",
-		"wp",
+		"ez tu mamá en bici",
+		"nt",
 		"rip",
 		"Hay pick!",
+		"Está a uno!",
+		"Yo hice 37 Kills",
 	];
 
 	const EMOTE_MESSAGES = [
 		"Kappa",
 		"PogChamp",
-		"EZ Clap",
-		"5Head",
-		"OMEGALUL",
-		"MonkaS",
-		"Pepega",
+		"ClaapyHype",
+		"KEKW",
+		"ozmahGasm",
+		"ozmahCry",
+		"draven78Cine",
 		"KEKW",
 		"Sadge",
-		"Copium",
+		"ozmahCine",
+		"PokPikachu",
 	];
 
 	const CHAT_MESSAGES = [
-		"hi",
-		"hello",
-		"sup",
-		"yo",
-		"hey",
-		"what's up",
-		"how's it going",
-		"nice",
-		"cool",
-		"awesome",
+		"Qué pedo!",
+		"Wenas",
+		"El PRI robó más",
+		"Puro primo",
 	];
 
 	const HYPE_MESSAGES = [
-		"HYPE",
-		"LET'S GOOOO",
 		"POGGERS",
-		"SHEESH",
-		"FIRE",
-		"CLEAN",
-		"NASTY",
-		"CRACKED",
-		"BUILT DIFFERENT",
-		"NO CAP",
+		"ES CINE",
+		"Muy buena, señores",
+		"Eso chingado!",
+		"Saludsita banda",
 	];
 
 	const TOXIC_MESSAGES = [
@@ -295,6 +402,14 @@ export const startTestMessageGeneration = () => {
 		"ggn't",
 		"Manau está tirando",
 		"Aparte de dps, también tengo que tanquear?",
+		"Trae mouse!",
+		"Trae xim!",
+		"Peak check!",
+		"Ese cabrón es, mínimo, GM",
+		"Es smurf!",
+		"No mms AMD",
+		"Ya cargue 3 ultis en 1 min",
+		"¿Cuantos kills es plata?",
 	];
 
 	const ALL_MESSAGES = [
@@ -378,11 +493,7 @@ function checkRaffleParticipation(
 	config: RaffleConfig,
 ): boolean {
 	// Ignore commands if configured
-	if (
-		config.ignoreCommands &&
-		content.startsWith("!") &&
-		config.keyword !== content.trim()
-	) {
+	if (config.keyword !== content.trim()) {
 		return false;
 	}
 
@@ -391,13 +502,8 @@ function checkRaffleParticipation(
 		? config.keyword
 		: config.keyword.toLowerCase();
 
-	if (config.wholeWordOnly) {
-		// Check for whole word match
-		const words = messageText.split(/\s+/);
-		return words.includes(keyword);
-	}
-	// Check for substring match
-	return messageText.includes(keyword);
+	const words = messageText.split(/\s+/);
+	return words.includes(keyword);
 }
 
 /**
@@ -409,6 +515,8 @@ export const updateRaffleConfig = (config: Partial<RaffleConfig>) => {
 		...state,
 		raffleConfig: { ...state.raffleConfig, ...config },
 	}));
+
+	console.log(config);
 };
 
 /**

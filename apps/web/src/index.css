@@ -5,7 +5,20 @@
 
 html,
 body {
-	@apply bg-background text-foreground;
+	font-size: 1.1rem;
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+	button:active {
+		transform: scale(0.97);
+		transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+	}
 }
 
 :root {
@@ -41,7 +54,7 @@ body {
 	--sidebar-accent-foreground: oklch(1 0 0);
 	--sidebar-border: oklch(0.869 0.0198 252.8943);
 	--sidebar-ring: oklch(0.6231 0.188 259.8145);
-	--font-sans: Inder, ui-sans-serif, sans-serif, system-ui;
+	--font-sans: Manrope, ui-sans-serif, sans-serif, system-ui;
 	--font-serif: Georgia, serif;
 	--font-mono: Menlo, monospace;
 	--radius: 0.5rem;
@@ -100,7 +113,7 @@ body {
 	--sidebar-accent-foreground: oklch(0.1288 0.0406 264.6952);
 	--sidebar-border: oklch(0.3717 0.0392 257.287);
 	--sidebar-ring: oklch(0.7137 0.1434 254.624);
-	--font-sans: Inder, ui-sans-serif, sans-serif, system-ui;
+	--font-sans: "Satoshi", sans-serif;
 	--font-serif: Georgia, serif;
 	--font-mono: Menlo, monospace;
 	--radius: 0.5rem;
@@ -182,6 +195,10 @@ body {
 	--tracking-wide: calc(var(--tracking-normal) + 0.025em);
 	--tracking-wider: calc(var(--tracking-normal) + 0.05em);
 	--tracking-widest: calc(var(--tracking-normal) + 0.1em);
+}
+
+body {
+	letter-spacing: var(--tracking-normal);
 }
 
 :root {
@@ -268,24 +285,11 @@ body {
 }
 
 .floating-label-active {
-	top: -25%;
+	top: -10%;
 	transform: translateY(-80%) translateX(-20%) scale(0.9);
 	color: var(--primary);
 	/* background: var(--background); */
 	padding: 0 4px;
-}
-
-body {
-	letter-spacing: var(--tracking-normal);
-}
-
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
 }
 
 /* Custom scrollbar utility */

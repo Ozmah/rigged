@@ -6,6 +6,7 @@ interface FloatingInputProps {
 	label: string;
 	value: string;
 	onChange: (value: string) => void;
+	onKeyUp?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 	placeholder?: string;
 	className?: string;
 	id?: string;
@@ -15,6 +16,7 @@ export function FloatingInput({
 	label,
 	value,
 	onChange,
+	onKeyUp,
 	placeholder,
 	className,
 	id,
@@ -37,6 +39,7 @@ export function FloatingInput({
 			<Input
 				id={id}
 				value={value}
+				onKeyUp={onKeyUp}
 				onChange={(e) => onChange(e.target.value)}
 				onFocus={() => setIsFocused(true)}
 				onBlur={() => setIsFocused(false)}

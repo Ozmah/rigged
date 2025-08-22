@@ -17,11 +17,11 @@ const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
 export function useTwitchEventSub() {
 	// const eventSubRef = useRef<TwitchEventSubWebSocket | null>(null);
 	const twitchAPI = useRouteContext({
-		from: "/_twitchAuth",
+		from: "__root__",
 		select: (ctx) => ctx.twitchAPI,
 	});
 	const twitchEventSubWebSocket = useRouteContext({
-		from: "/_twitchAuth",
+		from: "__root__",
 		select: (ctx) => ctx.twitchEventSubWebSocket,
 	});
 	const subscriptionIdRef = useRef<string | null>(null);

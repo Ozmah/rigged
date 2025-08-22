@@ -49,11 +49,6 @@ export const RIGGED_SCOPES = [
 	"user:read:email",
 ] as const;
 
-// EventSub WebSocket constants
-const EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS = 10;
-const EVENTSUB_KEEPALIVE_BUFFER_SECONDS = 10;
-const EVENTSUB_SESSION_WELCOME_TIMEOUT_MS = 15000;
-
 // EventSub WebSocket message types
 export interface EventSubMessage {
 	metadata: {

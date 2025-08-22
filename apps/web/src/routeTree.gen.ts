@@ -11,9 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CallbackRouteImport } from './routes/callback'
-import { Route as TwitchAuthRouteRouteImport } from './routes/_twitchAuth/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as TwitchAuthRaffleRouteImport } from './routes/_twitchAuth/raffle'
+import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
+import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutSandboxRouteImport } from './routes/_layout/sandbox'
+import { Route as LayoutRaffleRouteImport } from './routes/_layout/raffle'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -25,58 +26,66 @@ const CallbackRoute = CallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TwitchAuthRouteRoute = TwitchAuthRouteRouteImport.update({
-  id: '/_twitchAuth',
+const LayoutRouteRoute = LayoutRouteRouteImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LayoutRouteRoute,
 } as any)
-const TwitchAuthRaffleRoute = TwitchAuthRaffleRouteImport.update({
+const LayoutSandboxRoute = LayoutSandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
+  getParentRoute: () => LayoutRouteRoute,
+} as any)
+const LayoutRaffleRoute = LayoutRaffleRouteImport.update({
   id: '/raffle',
   path: '/raffle',
-  getParentRoute: () => TwitchAuthRouteRoute,
+  getParentRoute: () => LayoutRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/raffle': typeof TwitchAuthRaffleRoute
+  '/raffle': typeof LayoutRaffleRoute
+  '/sandbox': typeof LayoutSandboxRoute
+  '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/raffle': typeof TwitchAuthRaffleRoute
+  '/raffle': typeof LayoutRaffleRoute
+  '/sandbox': typeof LayoutSandboxRoute
+  '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_twitchAuth': typeof TwitchAuthRouteRouteWithChildren
+  '/_layout': typeof LayoutRouteRouteWithChildren
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/_twitchAuth/raffle': typeof TwitchAuthRaffleRoute
+  '/_layout/raffle': typeof LayoutRaffleRoute
+  '/_layout/sandbox': typeof LayoutSandboxRoute
+  '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/callback' | '/login' | '/raffle'
+  fullPaths: '/callback' | '/login' | '/raffle' | '/sandbox' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/callback' | '/login' | '/raffle'
+  to: '/callback' | '/login' | '/raffle' | '/sandbox' | '/'
   id:
     | '__root__'
-    | '/'
-    | '/_twitchAuth'
+    | '/_layout'
     | '/callback'
     | '/login'
-    | '/_twitchAuth/raffle'
+    | '/_layout/raffle'
+    | '/_layout/sandbox'
+    | '/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  TwitchAuthRouteRoute: typeof TwitchAuthRouteRouteWithChildren
+  LayoutRouteRoute: typeof LayoutRouteRouteWithChildren
   CallbackRoute: typeof CallbackRoute
   LoginRoute: typeof LoginRoute
 }
@@ -97,45 +106,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_twitchAuth': {
-      id: '/_twitchAuth'
+    '/_layout': {
+      id: '/_layout'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof TwitchAuthRouteRouteImport
+      preLoaderRoute: typeof LayoutRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_layout/': {
+      id: '/_layout/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof LayoutIndexRouteImport
+      parentRoute: typeof LayoutRouteRoute
     }
-    '/_twitchAuth/raffle': {
-      id: '/_twitchAuth/raffle'
+    '/_layout/sandbox': {
+      id: '/_layout/sandbox'
+      path: '/sandbox'
+      fullPath: '/sandbox'
+      preLoaderRoute: typeof LayoutSandboxRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/raffle': {
+      id: '/_layout/raffle'
       path: '/raffle'
       fullPath: '/raffle'
-      preLoaderRoute: typeof TwitchAuthRaffleRouteImport
-      parentRoute: typeof TwitchAuthRouteRoute
+      preLoaderRoute: typeof LayoutRaffleRouteImport
+      parentRoute: typeof LayoutRouteRoute
     }
   }
 }
 
-interface TwitchAuthRouteRouteChildren {
-  TwitchAuthRaffleRoute: typeof TwitchAuthRaffleRoute
+interface LayoutRouteRouteChildren {
+  LayoutRaffleRoute: typeof LayoutRaffleRoute
+  LayoutSandboxRoute: typeof LayoutSandboxRoute
+  LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
-const TwitchAuthRouteRouteChildren: TwitchAuthRouteRouteChildren = {
-  TwitchAuthRaffleRoute: TwitchAuthRaffleRoute,
+const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
+  LayoutRaffleRoute: LayoutRaffleRoute,
+  LayoutSandboxRoute: LayoutSandboxRoute,
+  LayoutIndexRoute: LayoutIndexRoute,
 }
 
-const TwitchAuthRouteRouteWithChildren = TwitchAuthRouteRoute._addFileChildren(
-  TwitchAuthRouteRouteChildren,
+const LayoutRouteRouteWithChildren = LayoutRouteRoute._addFileChildren(
+  LayoutRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  TwitchAuthRouteRoute: TwitchAuthRouteRouteWithChildren,
+  LayoutRouteRoute: LayoutRouteRouteWithChildren,
   CallbackRoute: CallbackRoute,
   LoginRoute: LoginRoute,
 }
