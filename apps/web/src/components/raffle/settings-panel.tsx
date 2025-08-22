@@ -16,6 +16,7 @@ import {
 	stopTestMessageGeneration,
 	updateRaffleConfig,
 } from "@/stores/chat";
+import { uiStore } from "@/stores/ui";
 
 interface SettingsPanelProps {
 	className?: string;
@@ -29,6 +30,7 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 		(state) => state.connectionStatus === "connected",
 	);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
+	const microMenuSelected = useStore(uiStore, (state) => state.microMenuSelected);
 
 	// All these handles need to go to a single hook
 	// Need implementation for a debug mode
@@ -110,274 +112,290 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 
 	return (
 		<div className="@container flex flex-col justify-center space-y-4 rounded-lg border bg-card px-4 py-4">
-			{/* Main Controls */}
-			<section className="space-y-4">
-				<div className="space-y-4">
-					<div className="">
-						<TypographyH4>Ajustes de Rifa</TypographyH4>
-					</div>
-					<div className="">
-						<FloatingInput
-							id="keyword"
-							label="Palabra clave"
-							value={raffleConfig.keyword}
-							onKeyUp={handleKeyUp}
-							onChange={handleKeywordChange}
-							placeholder="Ej: !sorteo"
-						/>
-					</div>
-					<div className="space-y-4">
-						<div>
-							<Button
-								onClick={
-									isCapturing
-										? handleStopCapture
-										: handleStartCapture
-								}
-								disabled={!isConnected}
-								variant={isCapturing ? "secondary" : "default"}
-								className="w-full font-bold"
-							>
-								{isCapturing
-									? "Detener Captura"
-									: "Iniciar Captura"}
-							</Button>
-						</div>
-						<div>
-							<Button
-								onClick={handleExecuteRaffle}
-								disabled={
-									!isCapturing || participants.length === 0
-								}
-								variant="outline"
-								className="w-full font-bold"
-							>
-								Participantes ({participants.length})
-							</Button>
-						</div>
-					</div>
-				</div>
-				<div className="inline-flex space-x-3">
-					<Switch
-						checked={raffleConfig.advanced}
-						id="advanced"
-						onCheckedChange={(checked) =>
-							handleToggle("advanced", checked)
-						}
-					/>
-					<Label htmlFor="advanced">¿Opciones avanzadas?</Label>
-				</div>
-			</section>
-			{/* Advanced Options */}
-			{raffleConfig.advanced && (
-				<section className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in space-y-4 duration-150 ease-[cubic-bezier(.25,">
-					<div className="space-y-4">
-						<div>
-							<TypographyH4>Configuración de Sorteo</TypographyH4>
-						</div>
+			{ microMenuSelected === "raffle" && (
+				<>
+					<section className="space-y-4">
 						<div className="space-y-4">
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.removeWinners}
-									id="removeWinners"
-									onCheckedChange={(checked) =>
-										handleToggle("removeWinners", checked)
-									}
-								/>
-								<Label
-									htmlFor="removeWinners"
-									className="flex-shrink-0 text-sm"
-								>
-									¿Quitar a los ganadores?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									// Change hardcoded value
-									size={16}
-									content="Los ganadores salen de la lista de participantes"
+							<div className="">
+								<TypographyH4>Ajustes de Rifa</TypographyH4>
+							</div>
+							<div className="">
+								<FloatingInput
+									id="keyword"
+									label="Palabra clave"
+									value={raffleConfig.keyword}
+									onKeyUp={handleKeyUp}
+									onChange={handleKeywordChange}
+									placeholder="Ej: !sorteo"
 								/>
 							</div>
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.followersOnly}
-									id="followersOnly"
-									onCheckedChange={(checked) =>
-										handleToggle("followersOnly", checked)
-									}
-								/>
-								<Label
-									htmlFor="followersOnly"
-									className="flex-shrink-0 text-sm"
-								>
-									¿Sólo seguidores?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									// Change hardcoded value
-									size={16}
-									content="Si no son seguidores, no participan"
-								/>
-							</div>
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.subsExtraTickets}
-									id="subsExtraTickets"
-									onCheckedChange={(checked) =>
-										handleToggle(
-											"subsExtraTickets",
-											checked,
-										)
-									}
-								/>
-								<Label
-									htmlFor="subsExtraTickets"
-									className="flex-shrink-0 text-sm"
-								>
-									¿Subs con más boletos?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									// Change hardcoded value
-									size={16}
-									content="Subs reciben más participaciones"
-								/>
-							</div>
-							{raffleConfig.subsExtraTickets && (
-								<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
-									<Label className="my-1 text-foreground text-sm">
-										¿Cuántos boletos más por sub?
-									</Label>
-									<NumberInput
-										key="subsExtraValue"
-										className="py-0"
-										value={raffleConfig.subsExtraValue}
-										onClick={(_e, counter) =>
-											handleCounter(
-												"subsExtraValue",
-												counter,
-											)
+							<div className="space-y-4">
+								<div>
+									<Button
+										onClick={
+											isCapturing
+												? handleStopCapture
+												: handleStartCapture
 										}
-									/>
+										disabled={!isConnected}
+										variant={isCapturing ? "secondary" : "default"}
+										className="w-full font-bold"
+									>
+										{isCapturing
+											? "Detener Captura"
+											: "Iniciar Captura"}
+									</Button>
 								</div>
-							)}
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.vipsExtraTickets}
-									id="vipsExtraTickets"
-									onCheckedChange={(checked) =>
-										handleToggle(
-											"vipsExtraTickets",
-											checked,
-										)
-									}
-								/>
-								<Label
-									htmlFor="vipsExtraTickets"
-									className="flex-shrink-0 text-sm"
-								>
-									¿VIPs con más boletos?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									// Change hardcoded value
-									size={16}
-									content="VIPs reciben más participaciones"
-								/>
-							</div>
-							{raffleConfig.vipsExtraTickets && (
-								<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
-									<Label className="my-1 text-foreground text-sm">
-										¿Cuántos boletos más por VIP?
-									</Label>
-									<NumberInput
-										key="vipsExtraValue"
-										className="py-0"
-										value={raffleConfig.vipsExtraValue}
-										onClick={(_e, counter) =>
-											handleCounter(
-												"vipsExtraValue",
-												counter,
-											)
+								<div>
+									<Button
+										onClick={handleExecuteRaffle}
+										disabled={
+											!isCapturing || participants.length === 0
 										}
-									/>
+										variant="outline"
+										className="w-full font-bold"
+									>
+										Participantes ({participants.length})
+									</Button>
 								</div>
-							)}
-							<div>
-								<Label className="my-1 text-foreground text-sm">
-									¿Cuántos ganadores?
-								</Label>
-								<NumberInput
-									key="maxWinners"
-									className="py-0"
-									value={raffleConfig.maxWinners}
-									onClick={(_e, counter) =>
-										handleCounter("maxWinners", counter)
-									}
-								/>
 							</div>
 						</div>
-						<div>
-							<TypographyH4>Filtros de Mensajes</TypographyH4>
+						<div className="inline-flex space-x-3">
+							<Switch
+								checked={raffleConfig.advanced}
+								id="advanced"
+								onCheckedChange={(checked) =>
+									handleToggle("advanced", checked)
+								}
+							/>
+							<Label htmlFor="advanced">¿Opciones avanzadas?</Label>
 						</div>
-						<div className="space-y-4">
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.ignoreMods}
-									id="ignoreMods"
-									onCheckedChange={(checked) =>
-										handleToggle("ignoreMods", checked)
-									}
-								/>
-								<Label
-									htmlFor="ignoreMods"
-									className="flex-shrink-0 text-sm"
-								>
-									¿Ignorar mods?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									size={16}
-									content="No participan los mods"
-								/>
-							</div>
-							<div className="inline-flex space-x-3">
-								<Switch
-									checked={raffleConfig.caseSensitive}
-									id="caseSensitive"
-									onCheckedChange={(checked) =>
-										handleToggle("caseSensitive", checked)
-									}
-								/>
-								<Label
-									htmlFor="caseSensitive"
-									className="flex-shrink-0 text-sm"
-								>
-									¿Respetar mayúsculas?
-								</Label>
-								<TooltipInfo
-									icon="QuestionIcon"
-									size={16}
-									content="Si palabra es 'Hola' no captura 'hola'"
-								/>
-							</div>
-						</div>
-					</div>
-				</section>
+					</section>
+					{raffleConfig.advanced && (
+						<>
+							<section className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in space-y-4 duration-150 ease-[cubic-bezier(.25,">
+								<div className="space-y-4">
+									<div>
+										<TypographyH4>Configuración de Sorteo</TypographyH4>
+									</div>
+									<div className="space-y-4">
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.removeWinners}
+												id="removeWinners"
+												onCheckedChange={(checked) =>
+													handleToggle("removeWinners", checked)
+												}
+											/>
+											<Label
+												htmlFor="removeWinners"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Quitar a los ganadores?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="Los ganadores salen de la lista de participantes"
+											/>
+										</div>
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.followersOnly}
+												id="followersOnly"
+												onCheckedChange={(checked) =>
+													handleToggle("followersOnly", checked)
+												}
+											/>
+											<Label
+												htmlFor="followersOnly"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Sólo seguidores?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="Si no son seguidores, no participan"
+											/>
+										</div>
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.subsExtraTickets}
+												id="subsExtraTickets"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"subsExtraTickets",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="subsExtraTickets"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Subs con más boletos?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="Subs reciben más participaciones"
+											/>
+										</div>
+										{raffleConfig.subsExtraTickets && (
+											<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
+												<Label className="my-1 text-foreground text-sm">
+													¿Cuántos boletos más por sub?
+												</Label>
+												<NumberInput
+													key="subsExtraValue"
+													className="py-0"
+													value={raffleConfig.subsExtraValue}
+													onClick={(_e, counter) =>
+														handleCounter(
+															"subsExtraValue",
+															counter,
+														)
+													}
+												/>
+											</div>
+										)}
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.vipsExtraTickets}
+												id="vipsExtraTickets"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"vipsExtraTickets",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="vipsExtraTickets"
+												className="flex-shrink-0 text-sm"
+											>
+												¿VIPs con más boletos?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="VIPs reciben más participaciones"
+											/>
+										</div>
+										{raffleConfig.vipsExtraTickets && (
+											<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
+												<Label className="my-1 text-foreground text-sm">
+													¿Cuántos boletos más por VIP?
+												</Label>
+												<NumberInput
+													key="vipsExtraValue"
+													className="py-0"
+													value={raffleConfig.vipsExtraValue}
+													onClick={(_e, counter) =>
+														handleCounter(
+															"vipsExtraValue",
+															counter,
+														)
+													}
+												/>
+											</div>
+										)}
+										<div>
+											<Label className="my-1 text-foreground text-sm">
+												¿Cuántos ganadores?
+											</Label>
+											<NumberInput
+												key="maxWinners"
+												className="py-0"
+												value={raffleConfig.maxWinners}
+												onClick={(_e, counter) =>
+													handleCounter("maxWinners", counter)
+												}
+											/>
+										</div>
+									</div>
+									<div>
+										<TypographyH4>Filtros de Mensajes</TypographyH4>
+									</div>
+									<div className="space-y-4">
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.ignoreMods}
+												id="ignoreMods"
+												onCheckedChange={(checked) =>
+													handleToggle("ignoreMods", checked)
+												}
+											/>
+											<Label
+												htmlFor="ignoreMods"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Ignorar mods?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												size={16}
+												content="No participan los mods"
+											/>
+										</div>
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={raffleConfig.caseSensitive}
+												id="caseSensitive"
+												onCheckedChange={(checked) =>
+													handleToggle("caseSensitive", checked)
+												}
+											/>
+											<Label
+												htmlFor="caseSensitive"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Respetar mayúsculas?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												size={16}
+												content="Si palabra es 'Hola' no captura 'hola'"
+											/>
+										</div>
+									</div>
+								</div>
+							</section>
+						</>
+					)}
+				</>
 			)}
-			{/* Debug Tooling */}
-			<section className="my-5 rounded-lg border bg-card">
-				<Button
-					onClick={
-						isGeneratingMessages
-							? handleStopTestMessages
-							: handleAddTestMessages
-					}
-					variant={isGeneratingMessages ? "secondary" : "default"}
-					className="w-full font-bold"
-				>
-					{isGeneratingMessages ? "Detener" : "Generar Mensajes"}
-				</Button>
-			</section>
+			{microMenuSelected === "settings" && (
+				<>
+					{/* Some other settings */}
+					<section className="my-5 rounded-lg border bg-card">
+						<TypographyH4>Todavía no tenemos nada aquí</TypographyH4>
+					</section>
+				</>
+			)}
+			{microMenuSelected === "dev" && (
+				<>
+					{/* Debug Tooling */}
+					<section className="my-5 rounded-lg border bg-card">
+						<Button
+							onClick={
+								isGeneratingMessages
+									? handleStopTestMessages
+									: handleAddTestMessages
+							}
+							variant={isGeneratingMessages ? "secondary" : "default"}
+							className="w-full font-bold"
+						>
+							{isGeneratingMessages ? "Detener" : "Generar Mensajes"}
+						</Button>
+					</section>
+				</>
+			)}
 		</div>
 	);
 }

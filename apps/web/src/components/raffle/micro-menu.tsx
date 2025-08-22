@@ -1,23 +1,43 @@
 import { GiftIcon, SlidersIcon, TestTubeIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@tanstack/react-store";
+import { uiStore } from "@/stores/ui";
 
 interface MicroMenuProps {
 	className?: string;
 }
 
+const MENU_ITEMS = [
+	{ id: "raffle" as const, icon: GiftIcon, label: "Raffle" },
+	{ id: "settings" as const, icon: SlidersIcon, label: "Settings" },
+	{ id: "dev" as const, icon: TestTubeIcon, label: "Dev Tools" },
+];
+
 export function MicroMenu({ className = "" }: MicroMenuProps) {
+	const microMenuSelected = useStore(uiStore, (state) => state.microMenuSelected);
+
+	const handleMenuClick = (menuId: "raffle" | "settings" | "dev") => {
+		uiStore.setState((state) => ({
+			...state,
+			microMenuSelected: menuId,
+		}));
+	};
+
 	return (
 		<div className="flex h-full flex-col items-end justify-start gap-3">
 			<div className="flex h-40 w-14 flex-wrap items-center justify-center gap-1 rounded-lg bg-card py-2 transition-colors">
-				<Button variant="secondary" size="icon" className="size-10">
-					<GiftIcon className="size-6" />
-				</Button>
-				<Button variant="secondary" size="icon" className="size-10">
-					<SlidersIcon className="size-6" />
-				</Button>
-				<Button variant="secondary" size="icon" className="size-10">
-					<TestTubeIcon className="size-6" />
-				</Button>
+				{MENU_ITEMS.map(({ id, icon: Icon, label }) => (
+					<Button
+						key={id}
+						variant={microMenuSelected === id ? "default" : "secondary"}
+						size="icon"
+						className="size-10"
+						onClick={() => handleMenuClick(id)}
+						title={label}
+					>
+						<Icon className="size-6" />
+					</Button>
+				))}
 			</div>
 		</div>
 	);
