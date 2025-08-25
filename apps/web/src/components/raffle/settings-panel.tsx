@@ -1,3 +1,4 @@
+import { WarningDiamondIcon } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
 import { toast } from "sonner";
 import { NumberInput } from "@/components/number-input";
@@ -9,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { TypographyH4 } from "@/components/ui/typography";
 import {
 	chatStore,
+	clearChatMessages,
 	executeRaffle,
 	startRaffleCapture,
 	startTestMessageGeneration,
@@ -16,7 +18,8 @@ import {
 	stopTestMessageGeneration,
 	updateRaffleConfig,
 } from "@/stores/chat";
-import { uiStore } from "@/stores/ui";
+import { uiStore, updateUiState } from "@/stores/ui";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface SettingsPanelProps {
 	className?: string;
@@ -30,7 +33,17 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 		(state) => state.connectionStatus === "connected",
 	);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
-	const microMenuSelected = useStore(uiStore, (state) => state.microMenuSelected);
+	const microMenuSelected = useStore(
+		uiStore,
+		(state) => state.microMenuSelected,
+	);
+	const isRaffleStateOpen = useStore(
+		uiStore,
+		(state) => state.isRaffleStateOpen,
+	);
+	const hasValidKeyword =
+		raffleConfig.keyword && raffleConfig.keyword.trim() !== "";
+	const canStartRaffle = isConnected && hasValidKeyword;
 
 	// All these handles need to go to a single hook
 	// Need implementation for a debug mode
@@ -82,13 +95,12 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 	};
 
 	const handleExecuteRaffle = () => {
-		const winners = executeRaffle();
-		console.log("Raffle winners:", winners);
+		const winner = executeRaffle();
+		console.log("Raffle winners:", winner);
 
-		if (winners.length > 0) {
-			const winnerNames = winners.map((w) => w.displayName).join(", ");
+		if (winner) {
 			toast.success("🎉 ¡Sorteo completado!", {
-				description: `Ganador${winners.length > 1 ? "es" : ""}: ${winnerNames}`,
+				description: `Ganador: ${winner.displayName}`,
 				duration: 8000,
 			});
 		} else {
@@ -104,7 +116,11 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 		updateRaffleConfig({ keyword });
 	};
 
-	// Debug
+	// Debug Options
+	const handleShowRaffleState = () => {
+		updateUiState({ isRaffleStateOpen: !isRaffleStateOpen });
+	};
+
 	const isGeneratingMessages = useStore(
 		chatStore,
 		(state) => state.debug.isChatGenerating,
@@ -112,7 +128,7 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 
 	return (
 		<div className="@container flex flex-col justify-center space-y-4 rounded-lg border bg-card px-4 py-4">
-			{ microMenuSelected === "raffle" && (
+			{microMenuSelected === "raffle" && (
 				<>
 					<section className="space-y-4">
 						<div className="space-y-4">
@@ -127,6 +143,7 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 									onKeyUp={handleKeyUp}
 									onChange={handleKeywordChange}
 									placeholder="Ej: !sorteo"
+									disabled={isCapturing}
 								/>
 							</div>
 							<div className="space-y-4">
@@ -137,25 +154,32 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 												? handleStopCapture
 												: handleStartCapture
 										}
-										disabled={!isConnected}
-										variant={isCapturing ? "secondary" : "default"}
+										disabled={!canStartRaffle}
+										variant={
+											isCapturing
+												? "secondary"
+												: "default"
+										}
 										className="w-full font-bold"
 									>
 										{isCapturing
-											? "Detener Captura"
-											: "Iniciar Captura"}
+											? "Cancelar Rifa"
+											: "Iniciar Rifa"}
 									</Button>
 								</div>
 								<div>
 									<Button
 										onClick={handleExecuteRaffle}
 										disabled={
-											!isCapturing || participants.length === 0
+											!isCapturing ||
+											participants.length === 0
 										}
 										variant="outline"
 										className="w-full font-bold"
 									>
-										Participantes ({participants.length})
+										{participants.length > 0
+											? "¡A la rifa!"
+											: "Sin participantes"}
 									</Button>
 								</div>
 							</div>
@@ -168,167 +192,32 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 									handleToggle("advanced", checked)
 								}
 							/>
-							<Label htmlFor="advanced">¿Opciones avanzadas?</Label>
+							<Label htmlFor="advanced">
+								¿Opciones avanzadas?
+							</Label>
 						</div>
 					</section>
 					{raffleConfig.advanced && (
 						<>
-							<section className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in space-y-4 duration-150 ease-[cubic-bezier(.25,">
+							<section className="fade-in slide-in-from-top-2 0.25, 0.46, 0.45, 0.94)] animate-in space-y-4 duration-200 ease-[cubic-bezier(">
 								<div className="space-y-4">
 									<div>
-										<TypographyH4>Configuración de Sorteo</TypographyH4>
+										<TypographyH4>
+											Filtros de Mensajes
+										</TypographyH4>
 									</div>
 									<div className="space-y-4">
 										<div className="inline-flex space-x-3">
 											<Switch
-												checked={raffleConfig.removeWinners}
-												id="removeWinners"
-												onCheckedChange={(checked) =>
-													handleToggle("removeWinners", checked)
+												checked={
+													raffleConfig.ignoreMods
 												}
-											/>
-											<Label
-												htmlFor="removeWinners"
-												className="flex-shrink-0 text-sm"
-											>
-												¿Quitar a los ganadores?
-											</Label>
-											<TooltipInfo
-												icon="QuestionIcon"
-												// Change hardcoded value
-												size={16}
-												content="Los ganadores salen de la lista de participantes"
-											/>
-										</div>
-										<div className="inline-flex space-x-3">
-											<Switch
-												checked={raffleConfig.followersOnly}
-												id="followersOnly"
-												onCheckedChange={(checked) =>
-													handleToggle("followersOnly", checked)
-												}
-											/>
-											<Label
-												htmlFor="followersOnly"
-												className="flex-shrink-0 text-sm"
-											>
-												¿Sólo seguidores?
-											</Label>
-											<TooltipInfo
-												icon="QuestionIcon"
-												// Change hardcoded value
-												size={16}
-												content="Si no son seguidores, no participan"
-											/>
-										</div>
-										<div className="inline-flex space-x-3">
-											<Switch
-												checked={raffleConfig.subsExtraTickets}
-												id="subsExtraTickets"
-												onCheckedChange={(checked) =>
-													handleToggle(
-														"subsExtraTickets",
-														checked,
-													)
-												}
-											/>
-											<Label
-												htmlFor="subsExtraTickets"
-												className="flex-shrink-0 text-sm"
-											>
-												¿Subs con más boletos?
-											</Label>
-											<TooltipInfo
-												icon="QuestionIcon"
-												// Change hardcoded value
-												size={16}
-												content="Subs reciben más participaciones"
-											/>
-										</div>
-										{raffleConfig.subsExtraTickets && (
-											<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
-												<Label className="my-1 text-foreground text-sm">
-													¿Cuántos boletos más por sub?
-												</Label>
-												<NumberInput
-													key="subsExtraValue"
-													className="py-0"
-													value={raffleConfig.subsExtraValue}
-													onClick={(_e, counter) =>
-														handleCounter(
-															"subsExtraValue",
-															counter,
-														)
-													}
-												/>
-											</div>
-										)}
-										<div className="inline-flex space-x-3">
-											<Switch
-												checked={raffleConfig.vipsExtraTickets}
-												id="vipsExtraTickets"
-												onCheckedChange={(checked) =>
-													handleToggle(
-														"vipsExtraTickets",
-														checked,
-													)
-												}
-											/>
-											<Label
-												htmlFor="vipsExtraTickets"
-												className="flex-shrink-0 text-sm"
-											>
-												¿VIPs con más boletos?
-											</Label>
-											<TooltipInfo
-												icon="QuestionIcon"
-												// Change hardcoded value
-												size={16}
-												content="VIPs reciben más participaciones"
-											/>
-										</div>
-										{raffleConfig.vipsExtraTickets && (
-											<div className="fade-in slide-in-from-top-2 .46, .45, .94)] animate-in duration-200 ease-[cubic-bezier(.25,">
-												<Label className="my-1 text-foreground text-sm">
-													¿Cuántos boletos más por VIP?
-												</Label>
-												<NumberInput
-													key="vipsExtraValue"
-													className="py-0"
-													value={raffleConfig.vipsExtraValue}
-													onClick={(_e, counter) =>
-														handleCounter(
-															"vipsExtraValue",
-															counter,
-														)
-													}
-												/>
-											</div>
-										)}
-										<div>
-											<Label className="my-1 text-foreground text-sm">
-												¿Cuántos ganadores?
-											</Label>
-											<NumberInput
-												key="maxWinners"
-												className="py-0"
-												value={raffleConfig.maxWinners}
-												onClick={(_e, counter) =>
-													handleCounter("maxWinners", counter)
-												}
-											/>
-										</div>
-									</div>
-									<div>
-										<TypographyH4>Filtros de Mensajes</TypographyH4>
-									</div>
-									<div className="space-y-4">
-										<div className="inline-flex space-x-3">
-											<Switch
-												checked={raffleConfig.ignoreMods}
 												id="ignoreMods"
 												onCheckedChange={(checked) =>
-													handleToggle("ignoreMods", checked)
+													handleToggle(
+														"ignoreMods",
+														checked,
+													)
 												}
 											/>
 											<Label
@@ -345,10 +234,65 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 										</div>
 										<div className="inline-flex space-x-3">
 											<Switch
-												checked={raffleConfig.caseSensitive}
+												checked={
+													raffleConfig.ignoreSubs
+												}
+												id="ignoreSubs"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"ignoreSubs",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="ignoreSubs"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Ignorar suscriptores?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												size={16}
+												content="No participan los suscriptores"
+											/>
+										</div>
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={
+													raffleConfig.ignoreVips
+												}
+												id="ignoreVips"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"ignoreVips",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="ignoreVips"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Ignorar VIPs?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												size={16}
+												content="No participan los VIPs"
+											/>
+										</div>
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={
+													raffleConfig.caseSensitive
+												}
 												id="caseSensitive"
 												onCheckedChange={(checked) =>
-													handleToggle("caseSensitive", checked)
+													handleToggle(
+														"caseSensitive",
+														checked,
+													)
 												}
 											/>
 											<Label
@@ -364,6 +308,180 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 											/>
 										</div>
 									</div>
+									<div>
+										<TypographyH4>
+											Configuración de Sorteo
+										</TypographyH4>
+									</div>
+									<div className="space-y-4">
+										<div className="inline-flex space-x-3">
+											<Switch
+												checked={
+													raffleConfig.removeWinners
+												}
+												id="removeWinners"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"removeWinners",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="removeWinners"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Quitar a los ganadores?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="Los ganadores no vuelven a participar"
+											/>
+										</div>
+										{/* <div className="inline-flex space-x-3">
+											<Switch
+												checked={
+													raffleConfig.followersOnly
+												}
+												id="followersOnly"
+												onCheckedChange={(checked) =>
+													handleToggle(
+														"followersOnly",
+														checked,
+													)
+												}
+											/>
+											<Label
+												htmlFor="followersOnly"
+												className="flex-shrink-0 text-sm"
+											>
+												¿Sólo seguidores?
+											</Label>
+											<TooltipInfo
+												icon="QuestionIcon"
+												// Change hardcoded value
+												size={16}
+												content="Si no son seguidores, no participan"
+											/>
+										</div> */}
+										{!raffleConfig.ignoreSubs && (
+											<>
+												<div className="inline-flex space-x-3">
+													<Switch
+														checked={
+															raffleConfig.subsExtraTickets
+														}
+														id="subsExtraTickets"
+														onCheckedChange={(
+															checked,
+														) =>
+															handleToggle(
+																"subsExtraTickets",
+																checked,
+															)
+														}
+													/>
+													<Label
+														htmlFor="subsExtraTickets"
+														className="flex-shrink-0 text-sm"
+													>
+														¿Subs con más boletos?
+													</Label>
+													<TooltipInfo
+														icon="QuestionIcon"
+														// Change hardcoded value
+														size={16}
+														content="Subs reciben más participaciones"
+													/>
+												</div>
+
+												{raffleConfig.subsExtraTickets && (
+													<div className="fade-in slide-in-from-top-2 0.25, 0.46, 0.45, 0.94)] animate-in duration-200 ease-[cubic-bezier(">
+														<Label className="my-1 text-foreground text-sm">
+															¿Cuántos boletos más
+															por sub?
+														</Label>
+														<NumberInput
+															key="subsExtraValue"
+															className="py-0"
+															minValue={1}
+															value={
+																raffleConfig.subsExtraValue
+															}
+															onClick={(
+																_e,
+																counter,
+															) =>
+																handleCounter(
+																	"subsExtraValue",
+																	counter,
+																)
+															}
+														/>
+													</div>
+												)}
+											</>
+										)}
+										{!raffleConfig.ignoreVips && (
+											<>
+												<div className="inline-flex space-x-3">
+													<Switch
+														checked={
+															raffleConfig.vipsExtraTickets
+														}
+														id="vipsExtraTickets"
+														onCheckedChange={(
+															checked,
+														) =>
+															handleToggle(
+																"vipsExtraTickets",
+																checked,
+															)
+														}
+													/>
+													<Label
+														htmlFor="vipsExtraTickets"
+														className="flex-shrink-0 text-sm"
+													>
+														¿VIPs con más boletos?
+													</Label>
+													<TooltipInfo
+														icon="QuestionIcon"
+														// Change hardcoded value
+														size={16}
+														content="VIPs reciben más participaciones"
+													/>
+												</div>
+												{raffleConfig.vipsExtraTickets && (
+													<div className="fade-in slide-in-from-top-2 0.25, 0.46, 0.45, 0.94)] animate-in duration-200 ease-[cubic-bezier(">
+														<Label className="my-1 text-foreground text-sm">
+															¿Cuántos boletos más
+															por VIP?
+														</Label>
+														<NumberInput
+															key="vipsExtraValue"
+															className="py-0"
+															minValue={1}
+															value={
+																raffleConfig.vipsExtraValue
+															}
+															onClick={(
+																_e,
+																counter,
+															) =>
+																handleCounter(
+																	"vipsExtraValue",
+																	counter,
+																)
+															}
+														/>
+													</div>
+												)}
+											</>
+										)}
+									</div>
 								</div>
 							</section>
 						</>
@@ -374,25 +492,83 @@ export function SettingsPanel({ className = "" }: SettingsPanelProps) {
 				<>
 					{/* Some other settings */}
 					<section className="my-5 rounded-lg border bg-card">
-						<TypographyH4>Todavía no tenemos nada aquí</TypographyH4>
+						<TypographyH4>
+							Todavía no tenemos nada aquí
+						</TypographyH4>
 					</section>
 				</>
 			)}
 			{microMenuSelected === "dev" && (
 				<>
 					{/* Debug Tooling */}
-					<section className="my-5 rounded-lg border bg-card">
-						<Button
-							onClick={
-								isGeneratingMessages
-									? handleStopTestMessages
-									: handleAddTestMessages
-							}
-							variant={isGeneratingMessages ? "secondary" : "default"}
-							className="w-full font-bold"
-						>
-							{isGeneratingMessages ? "Detener" : "Generar Mensajes"}
-						</Button>
+					<section className="my-5 space-y-4 rounded-lg bg-card">
+						<div>
+							<Button
+								id="generateTestMessages"
+								onClick={
+									isGeneratingMessages
+										? handleStopTestMessages
+										: handleAddTestMessages
+								}
+								variant={
+									isGeneratingMessages
+										? "secondary"
+										: "default"
+								}
+								className="w-full font-bold"
+							>
+								{isGeneratingMessages
+									? "Detener"
+									: "Generar Mensajes"}
+							</Button>
+						</div>
+						<div>
+							<Button
+								id="showState"
+								onClick={handleShowRaffleState}
+								variant={
+									isRaffleStateOpen ? "secondary" : "default"
+								}
+								className="w-full font-bold"
+							>
+								{isRaffleStateOpen
+									? "Esconder Datos Dev"
+									: "Mostrar Datos Dev"}
+							</Button>
+						</div>
+						<div>
+							<Button
+								id="clearChat"
+								onClick={clearChatMessages}
+								variant={"default"}
+								className="w-full font-bold"
+							>
+								Limpiar Chat
+							</Button>
+						</div>
+						<Alert variant="destructive">
+							<WarningDiamondIcon />
+							<AlertTitle>¡Cuidado!</AlertTitle>
+							<AlertDescription>
+								<p>
+									Estos botones pueden afectar la rifa{" "}
+									<strong>
+										{"<<¡No los uses si no estas seguro!>>"}
+									</strong>
+								</p>
+								<ul className="list-inside list-disc text-sm">
+									<li>
+										El boton de Generar Mensajes comienza a
+										generar mensajes aleatorios simulados,
+										pero pueden ser considerados en la rifa.
+									</li>
+									<li>
+										El otro botón limpia el chat y esos
+										mensajes no se pueden recuperar
+									</li>
+								</ul>
+							</AlertDescription>
+						</Alert>
 					</section>
 				</>
 			)}

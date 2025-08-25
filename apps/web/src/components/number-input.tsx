@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 interface NumberInputProps {
 	value?: number;
 	size?: number;
+	minValue?: number;
 	className?: string;
 	variant?: "default" | "round";
 	onClick?: (
@@ -14,7 +15,7 @@ interface NumberInputProps {
 	) => void;
 }
 
-export function NumberInput({ ...props }: NumberInputProps) {
+export function NumberInput({ minValue = 0, ...props }: NumberInputProps) {
 	const [counter, setCounter] = useState(props.value ?? 0);
 
 	const variantClassNameButton = (): string => {
@@ -29,7 +30,7 @@ export function NumberInput({ ...props }: NumberInputProps) {
 		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
 	) => {
 		const newCounterValue = Math.max(
-			0,
+			minValue,
 			e.currentTarget.dataset.action == "increment"
 				? counter + 1
 				: counter - 1,

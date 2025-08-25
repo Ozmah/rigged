@@ -10,6 +10,7 @@ interface FloatingInputProps {
 	placeholder?: string;
 	className?: string;
 	id?: string;
+	disabled?: boolean;
 }
 
 export function FloatingInput({
@@ -20,6 +21,7 @@ export function FloatingInput({
 	placeholder,
 	className,
 	id,
+	disabled,
 }: FloatingInputProps) {
 	const [isFocused, setIsFocused] = useState(false);
 	const hasContent = value.length > 0;
@@ -45,6 +47,7 @@ export function FloatingInput({
 				onBlur={() => setIsFocused(false)}
 				placeholder={isFloating ? placeholder : ""}
 				className="floating-input"
+				disabled={disabled}
 			/>
 		</div>
 	);

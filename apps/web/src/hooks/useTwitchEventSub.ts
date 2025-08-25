@@ -184,7 +184,6 @@ export function useTwitchEventSub() {
 	/**
 	 * Establishes EventSub WebSocket connection and creates chat subscription
 	 * Critical: Creates subscription within 10 seconds of session_welcome to avoid timeout
-	 * PATTERN: Creates fresh EventSubWebSocket instance like rigged2
 	 */
 	const connect = useCallback(async () => {
 		console.log("🚀 connect() called - checking auth state:", {

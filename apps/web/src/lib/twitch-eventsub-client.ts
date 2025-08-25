@@ -1,5 +1,5 @@
 // EventSub WebSocket constants
-const EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS = 10;
+const EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS = 5;
 const EVENTSUB_KEEPALIVE_BUFFER_SECONDS = 10;
 const EVENTSUB_SESSION_WELCOME_TIMEOUT_MS = 15000;
 
@@ -253,6 +253,7 @@ export class TwitchEventSubWebSocket {
 	 * @param message - EventSub message
 	 */
 	private handleEventSubMessage(message: EventSubMessage): void {
+		console.log(message.metadata.message_type);
 		switch (message.metadata.message_type) {
 			case "session_welcome":
 				this.sessionId = message.payload.session?.id || null;

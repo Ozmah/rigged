@@ -2,9 +2,16 @@ import { Store } from "@tanstack/store";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 
 // Max messages to be kept in state
-const MAX_MESSAGES = 100;
+export const MAX_MESSAGES = 100;
 
 const RAFFLE_OPTIONS_STORAGE_KEY = "rigged-raffle-options";
+
+const CONFIG_EXCLUSIONS = new Map<keyof RaffleConfig, (keyof RaffleConfig)[]>([
+	["ignoreSubs", ["subsExtraTickets"]],
+	["ignoreVips", ["vipsExtraTickets"]],
+	["subsExtraTickets", ["ignoreSubs"]],
+	["vipsExtraTickets", ["ignoreVips"]],
+]);
 
 /**
  * Processed chat message for UI display
@@ -65,7 +72,12 @@ export interface PersistedRaffleConfig {
 	vipsExtraTickets: boolean;
 	vipsExtraValue: number;
 	ignoreMods: boolean;
-	maxWinners: number;
+	ignoreSubs: boolean;
+	ignoreVips: boolean;
+	ticketValue: number;
+	// There was a maxWinners and was ditched
+	// to use the mechanic of any amount of winners
+	// the streamer wants.
 }
 
 /**
@@ -123,7 +135,9 @@ export const saveRaffleConfigState = (state: RaffleConfig): void => {
 			vipsExtraTickets: state.vipsExtraTickets,
 			vipsExtraValue: state.vipsExtraValue,
 			ignoreMods: state.ignoreMods,
-			maxWinners: state.maxWinners,
+			ignoreSubs: state.ignoreSubs,
+			ignoreVips: state.ignoreVips,
+			ticketValue: state.ticketValue,
 		};
 
 		localStorage.setItem(
@@ -155,7 +169,9 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
 			vipsExtraTickets: parsed.vipsExtraTickets,
 			vipsExtraValue: parsed.vipsExtraValue,
 			ignoreMods: parsed.ignoreMods,
-			maxWinners: parsed.maxWinners,
+			ignoreSubs: parsed.ignoreSubs,
+			ignoreVips: parsed.ignoreVips,
+			ticketValue: parsed.ticketValue,
 		};
 	} catch (error) {
 		console.warn("Failed to load persisted raffle config state:", error);
@@ -181,7 +197,6 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - caseSensitive: false - Case-insensitive keyword matching for better user experience
  * - wholeWordOnly: false - Substring matching allows flexible keyword placement within messages
  * - ignoreCommands: true - Automatically filters out bot commands (messages starting with !)
- * - maxWinners: 1 - Default single winner selection for standard raffle operations
  * - removeWinners: true - Previous winners are excluded from subsequent raffle rounds
  *
  * Raffle State Management:
@@ -213,11 +228,13 @@ const initialState: ChatState = {
 		removeWinners: true,
 		followersOnly: false,
 		subsExtraTickets: false,
-		subsExtraValue: 0,
+		subsExtraValue: 1,
 		vipsExtraTickets: false,
-		vipsExtraValue: 0,
+		vipsExtraValue: 1,
 		ignoreMods: false,
-		maxWinners: 1,
+		ignoreSubs: false,
+		ignoreVips: false,
+		ticketValue: 1,
 		...loadPersistedRaffleConfigState(),
 	},
 
@@ -301,21 +318,31 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 		// Keep only last maxMessages
 		if (newMessages.length > state.maxMessages) {
 			newMessages.splice(0, newMessages.length - state.maxMessages);
+			// newMessages.shift();
 		}
 
-		// Check if this message qualifies for raffle participation
-		const isParticipating =
-			state.isCapturing &&
-			checkRaffleParticipation(message.content, state.raffleConfig);
+		if (state.raffleConfig.advanced) {
+			const isMessageParticipating =
+				state.isCapturing &&
+				checkMessageRaffleParticipation(
+					message.content,
+					state.raffleConfig,
+				);
 
-		// Update message participation status
-		if (isParticipating) {
-			message.isParticipant = true;
+			const isUserParticipating =
+				state.isCapturing &&
+				checkUserRaffleParticipation(message, state.raffleConfig);
+
+			message.isParticipant =
+				isMessageParticipating && isUserParticipating;
+		} else {
+			message.isParticipant =
+				state.raffleConfig.keyword.trim().toLowerCase() ===
+				message.content.trim().toLowerCase();
 		}
 
-		// Add to participants if qualifying and not already participating
 		const newParticipants = [...state.participants];
-		if (isParticipating) {
+		if (message.isParticipant) {
 			const existingParticipant = newParticipants.find(
 				(p) => p.userId === message.userId,
 			);
@@ -344,6 +371,11 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 			},
 		};
 	});
+	setTimeout(() => {
+		// Trigger scroll event para que recalcule isAtBottom
+		const container = document.querySelector('[role="log"]');
+		container?.dispatchEvent(new Event("scroll"));
+	}, 0);
 };
 
 export const startTestMessageGeneration = () => {
@@ -450,7 +482,7 @@ export const startTestMessageGeneration = () => {
 			channel_points_custom_reward_id: undefined,
 		};
 		addChatMessage(fakeMessage);
-	}, 2000);
+	}, 500);
 
 	chatStore.setState((state) => ({
 		...state,
@@ -484,26 +516,82 @@ export const stopTestMessageGeneration = () => {
 
 /**
  * Checks if a message qualifies for raffle participation
- * @param content - Message content
+ * @param message - Message content
  * @param config - Raffle configuration
  * @returns Whether message qualifies
  */
-function checkRaffleParticipation(
-	content: string,
+function checkMessageRaffleParticipation(
+	message: string,
 	config: RaffleConfig,
 ): boolean {
-	// Ignore commands if configured
-	if (config.keyword !== content.trim()) {
-		return false;
-	}
-
-	const messageText = config.caseSensitive ? content : content.toLowerCase();
+	// Case sensitive logic
+	const messageText = config.caseSensitive
+		? message.trim()
+		: message.trim().toLowerCase();
 	const keyword = config.caseSensitive
 		? config.keyword
 		: config.keyword.toLowerCase();
 
-	const words = messageText.split(/\s+/);
-	return words.includes(keyword);
+	const isParticipating = keyword === messageText;
+
+	// Ignore commands if configured
+	return isParticipating;
+}
+
+/**
+ * Checks if a message qualifies for raffle participation
+ * @param content - Message content
+ * @param config - Raffle configuration
+ * @returns Whether message qualifies
+ */
+function checkUserRaffleParticipation(
+	message: ChatMessage,
+	config: RaffleConfig,
+): boolean {
+	let isParticipant = true;
+
+	// Follower logic will not be implemented yet,
+	// we need a way to bring them and use cache
+	// since there's no reliable way to get them
+	// from the message request, cache is a must.
+
+	// Considering a Workers approach
+
+	// if (config.followersOnly && !isFollower) {
+	//     isParticipant = false;
+	// }
+
+	if (
+		config.removeWinners &&
+		chatStore.state.winners.some(
+			(winner) => winner.userId === message.userId,
+		)
+	) {
+		isParticipant = false;
+	}
+
+	if (
+		config.ignoreMods &&
+		message.badges.some((badge) => badge.setId === "moderator")
+	) {
+		isParticipant = false;
+	}
+
+	if (
+		config.ignoreSubs &&
+		message.badges.some((badge) => badge.setId === "subscriber")
+	) {
+		isParticipant = false;
+	}
+
+	if (
+		config.ignoreVips &&
+		message.badges.some((badge) => badge.setId === "vip")
+	) {
+		isParticipant = false;
+	}
+
+	return isParticipant;
 }
 
 /**
@@ -515,12 +603,13 @@ export const updateRaffleConfig = (config: Partial<RaffleConfig>) => {
 		...state,
 		raffleConfig: { ...state.raffleConfig, ...config },
 	}));
-
-	console.log(config);
 };
 
 /**
  * Starts raffle capture
+ *
+ * This sets isCapturing as true, this triggers
+ * the filtering inside addChatMessage
  */
 export const startRaffleCapture = () => {
 	chatStore.setState((state) => ({
@@ -551,51 +640,34 @@ export const stopRaffleCapture = () => {
  * Executes raffle and selects winners
  * @returns Selected winners
  */
-export const executeRaffle = (): RaffleParticipant[] => {
-	let winners: RaffleParticipant[] = [];
-
+export const executeRaffle = (): RaffleParticipant => {
 	chatStore.setState((state) => {
-		// Get available participants (exclude previous winners if configured)
 		const availableParticipants = state.raffleConfig.removeWinners
 			? state.participants.filter((p) => !p.isWinner)
 			: state.participants;
 
+		// No participants available
+		// Edge case, needs to be handled gracefully
+		// If all participants are winners and
+		// removeWinners is active (This is not handled)
 		if (availableParticipants.length === 0) {
-			return state; // No participants available
+			return state;
 		}
 
-		// Select random winners
-		const numWinners = Math.min(
-			state.raffleConfig.maxWinners,
-			availableParticipants.length,
-		);
-		const selectedWinners = selectRandomParticipants(
-			availableParticipants,
-			numWinners,
-		);
-
-		// Mark as winners
-		selectedWinners.forEach((winner) => {
-			winner.isWinner = true;
-		});
-
-		// Update participants list
-		const updatedParticipants = state.participants.map((p) => {
-			const isWinner = selectedWinners.find((w) => w.userId === p.userId);
-			return isWinner ? { ...p, isWinner: true } : p;
-		});
-
-		winners = selectedWinners;
+		const selectedWinner = selectRandomParticipant(availableParticipants);
+		selectedWinner.isWinner = true;
 
 		return {
 			...state,
-			participants: updatedParticipants,
-			winners: [...state.winners, ...selectedWinners],
+			winners: [...state.winners, selectedWinner],
 			currentRound: state.currentRound + 1,
 		};
 	});
 
-	return winners;
+	console.log(chatStore.state.winners.at(-1));
+
+	// Need to make this clearer and avoid using !
+	return chatStore.state.winners.at(-1)!;
 };
 
 /**
@@ -604,24 +676,40 @@ export const executeRaffle = (): RaffleParticipant[] => {
  * @param count - Number to select
  * @returns Selected participants
  */
-function selectRandomParticipants(
+function selectRandomParticipant(
 	participants: RaffleParticipant[],
-	count: number,
-): RaffleParticipant[] {
-	if (count >= participants.length) {
-		return [...participants];
-	}
+): RaffleParticipant {
+	const config = chatStore.state.raffleConfig;
 
-	const selected: RaffleParticipant[] = [];
-	const available = [...participants];
+	// Crear pool de tickets
+	const ticketPool: RaffleParticipant[] = [];
 
-	for (let i = 0; i < count; i++) {
-		const randomIndex = Math.floor(Math.random() * available.length);
-		selected.push(available[randomIndex]);
-		available.splice(randomIndex, 1);
-	}
+	participants.forEach((participant) => {
+		ticketPool.push(participant);
 
-	return selected;
+		if (
+			config.subsExtraTickets &&
+			!config.ignoreSubs &&
+			participant.badges.includes("subscriber")
+		) {
+			for (let i = 0; i < config.subsExtraValue; i++) {
+				ticketPool.push(participant);
+			}
+		}
+
+		if (
+			config.vipsExtraTickets &&
+			!config.ignoreVips &&
+			participant.badges.includes("vip")
+		) {
+			for (let i = 0; i < config.vipsExtraValue; i++) {
+				ticketPool.push(participant);
+			}
+		}
+	});
+
+	const randomIndex = Math.floor(Math.random() * ticketPool.length);
+	return ticketPool[randomIndex];
 }
 
 /**
