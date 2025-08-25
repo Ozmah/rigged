@@ -1,17 +1,9 @@
 import { Store } from "@tanstack/store";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 
-// Max messages to be kept in state
 export const MAX_MESSAGES = 100;
 
 const RAFFLE_OPTIONS_STORAGE_KEY = "rigged-raffle-options";
-
-const CONFIG_EXCLUSIONS = new Map<keyof RaffleConfig, (keyof RaffleConfig)[]>([
-	["ignoreSubs", ["subsExtraTickets"]],
-	["ignoreVips", ["vipsExtraTickets"]],
-	["subsExtraTickets", ["ignoreSubs"]],
-	["vipsExtraTickets", ["ignoreVips"]],
-]);
 
 /**
  * Processed chat message for UI display
@@ -76,8 +68,8 @@ export interface PersistedRaffleConfig {
 	ignoreVips: boolean;
 	ticketValue: number;
 	// There was a maxWinners and was ditched
-	// to use the mechanic of any amount of winners
-	// the streamer wants.
+	// to allow streamers to pick as many
+	// winners as they want
 }
 
 /**
@@ -193,11 +185,18 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  *
  * Raffle Configuration:
  * - keyword: "" - Empty keyword requiring user configuration before raffle capture can begin
- * - advanced: false - Advanced options are disabled
+ * - advanced: false - Advanced options are disabled by default
  * - caseSensitive: false - Case-insensitive keyword matching for better user experience
- * - wholeWordOnly: false - Substring matching allows flexible keyword placement within messages
- * - ignoreCommands: true - Automatically filters out bot commands (messages starting with !)
  * - removeWinners: true - Previous winners are excluded from subsequent raffle rounds
+ * - followersOnly: false - Followers-only mode disabled (implementation pending)
+ * - subsExtraTickets: false - Extra tickets for subscribers disabled by default
+ * - subsExtraValue: 1 - Number of extra tickets for subscribers when enabled
+ * - vipsExtraTickets: false - Extra tickets for VIPs disabled by default
+ * - vipsExtraValue: 1 - Number of extra tickets for VIPs when enabled
+ * - ignoreMods: false - Moderators can participate in raffles by default
+ * - ignoreSubs: false - Subscribers can participate in raffles by default
+ * - ignoreVips: false - VIPs can participate in raffles by default
+ * - ticketValue: 1 - Base ticket value for all participants
  *
  * Raffle State Management:
  * - participants: [] - No participants captured at startup
@@ -209,6 +208,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - totalMessages: 0 - Message counter starts at zero
  * - uniqueParticipants: 0 - Participant tracking begins empty
  * - messagesPerMinute: 0 - Performance metric initialized to zero
+ * - captureStartTime: undefined - Raffle capture start time not set initially
  *
  * Debug Configuration:
  * - chatInterval: undefined - No test message generation running initially
@@ -318,7 +318,6 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 		// Keep only last maxMessages
 		if (newMessages.length > state.maxMessages) {
 			newMessages.splice(0, newMessages.length - state.maxMessages);
-			// newMessages.shift();
 		}
 
 		if (state.raffleConfig.advanced) {
@@ -672,8 +671,8 @@ export const executeRaffle = (): RaffleParticipant => {
 
 /**
  * Selects random participants from available list
- * @param participants - Available participants
- * @param count - Number to select
+ * @param participants Available participants
+ * @param count Number to select
  * @returns Selected participants
  */
 function selectRandomParticipant(
@@ -681,7 +680,6 @@ function selectRandomParticipant(
 ): RaffleParticipant {
 	const config = chatStore.state.raffleConfig;
 
-	// Crear pool de tickets
 	const ticketPool: RaffleParticipant[] = [];
 
 	participants.forEach((participant) => {
@@ -708,7 +706,10 @@ function selectRandomParticipant(
 		}
 	});
 
-	const randomIndex = Math.floor(Math.random() * ticketPool.length);
+	const randomArray = new Uint32Array(1);
+	crypto.getRandomValues(randomArray);
+	const randomIndex = randomArray[0] % ticketPool.length;
+
 	return ticketPool[randomIndex];
 }
 

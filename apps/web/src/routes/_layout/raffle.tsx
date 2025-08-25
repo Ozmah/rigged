@@ -7,6 +7,7 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { EventSubDiagnostics } from "@/components/eventsub-diagnostics";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { SettingsPanel } from "@/components/raffle/settings-panel";
 import { ShowRaffleState } from "@/components/show-raffle-state";
@@ -36,7 +37,8 @@ function RaffleComponent() {
 	);
 
 	// EventSub connection (auto-connects when authenticated)
-	const { isConnected, isConnecting } = useTwitchEventSub();
+	const { isConnected, isConnecting, sessionId, subscriptionId } =
+		useTwitchEventSub();
 	const contextRef = useRef<StickToBottomContext>(null);
 
 	useEffect(() => {
@@ -49,9 +51,21 @@ function RaffleComponent() {
 
 	return (
 		<>
-			<div className="col-span-2 col-start-9 row-span-5 row-start-2">
-				{isRaffleStateOpen && <ShowRaffleState />}
-			</div>
+			{isRaffleStateOpen && (
+				<>
+					<div className="col-span-2 col-start-9 row-span-3 row-start-2">
+						<ShowRaffleState />
+					</div>
+					<div className="col-span-2 col-start-9 row-span-2 row-start-5">
+						<EventSubDiagnostics
+							sessionId={sessionId}
+							subscriptionId={subscriptionId}
+							isConnected={isConnected}
+							isConnecting={isConnecting}
+						/>
+					</div>
+				</>
+			)}
 			<div className="col-start-2 row-span-5 row-start-2">
 				<MicroMenu />
 			</div>

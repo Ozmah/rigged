@@ -276,6 +276,7 @@ export class TwitchEventSubWebSocket {
 				break;
 
 			case "session_keepalive":
+				console.log("Received keepalive - resetting timeout");
 				this.setupKeepalive(EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS);
 				break;
 
@@ -285,8 +286,16 @@ export class TwitchEventSubWebSocket {
 					message.metadata.subscription_type ===
 						"channel.chat.message"
 				) {
+					console.log(
+						"Received chat message notification - calling message callback",
+					);
 					this.onMessageCallback?.(message.payload.event);
 				}
+				// CRITICAL FIX: Reset keepalive timeout on ANY message, including notifications
+				console.log(
+					"Notification received - resetting keepalive timeout",
+				);
+				this.setupKeepalive(EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS);
 				break;
 
 			case "session_reconnect":
@@ -312,22 +321,62 @@ export class TwitchEventSubWebSocket {
 	 * @param timeoutSeconds - Timeout in seconds
 	 */
 	private setupKeepalive(timeoutSeconds: number): void {
+		// Clear existing timeout
 		if (this.keepaliveTimeoutId) {
 			clearTimeout(this.keepaliveTimeoutId);
+			this.keepaliveTimeoutId = null;
+		}
+
+		// Only setup keepalive if we have an active WebSocket connection
+		if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+			console.warn(
+				"Skipping keepalive setup - WebSocket not in OPEN state",
+			);
+			return;
 		}
 
 		// Add buffer to the timeout
 		this.keepaliveTimeoutId = window.setTimeout(
 			() => {
+				// Double-check connection state before reconnecting
+				if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+					console.log(
+						"Keepalive timeout fired but WebSocket already closed - skipping reconnect",
+					);
+					return;
+				}
+
+				// Validate we still have the required callbacks
+				if (
+					!this.onMessageCallback ||
+					!this.onConnectionCallback ||
+					!this.onErrorCallback
+				) {
+					console.warn(
+						"Keepalive timeout fired but callbacks are missing - skipping reconnect",
+					);
+					return;
+				}
+
 				console.warn("EventSub keepalive timeout - reconnecting");
+
+				// Store callbacks before disconnect (they might get cleared)
+				const messageCallback = this.onMessageCallback;
+				const connectionCallback = this.onConnectionCallback;
+				const errorCallback = this.onErrorCallback;
+
 				this.disconnect();
 				this.connect(
-					this.onMessageCallback!,
-					this.onConnectionCallback!,
-					this.onErrorCallback!,
+					messageCallback,
+					connectionCallback,
+					errorCallback,
 				);
 			},
 			(timeoutSeconds + EVENTSUB_KEEPALIVE_BUFFER_SECONDS) * 1000,
+		);
+
+		console.log(
+			`Keepalive timeout set for ${timeoutSeconds + EVENTSUB_KEEPALIVE_BUFFER_SECONDS} seconds`,
 		);
 	}
 
