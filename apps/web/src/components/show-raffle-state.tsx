@@ -1,6 +1,5 @@
 import { useStore } from "@tanstack/react-store";
 import { chatStore } from "@/stores/chat";
-import { uiStore } from "@/stores/ui";
 
 interface ShowRaffleStateProps {
 	className?: string;
@@ -55,6 +54,7 @@ export function ShowRaffleState({ className = "" }: ShowRaffleStateProps) {
 				</h3>
 				<pre className="max-h-200 overflow-auto rounded border border-slate-700 bg-slate-950 p-4 font-mono text-slate-300 text-xs">
 					<code
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: Safe controlled JSON syntax highlighting for diagnostics
 						dangerouslySetInnerHTML={{
 							__html: syntaxHighlightJSON(
 								JSON.stringify(stateForDisplay, null, 2),

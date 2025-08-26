@@ -8,7 +8,7 @@
 	"scripts": {
 		"check": "biome check --write .",
 		"lint": "bunx --bun biome lint apps/web/ --max-diagnostics 50",
-		"lint:fix": "bunx --bun biome lint apps/web/ --fix",
+		"lint:fix": "bunx --bun biome lint apps/web/ --max-diagnostics=50 --fix",
 		"dev": "bun run --filter '*' dev",
 		"build": "bun run --filter '*' build",
 		"check-types": "bun run --filter '*' check-types",

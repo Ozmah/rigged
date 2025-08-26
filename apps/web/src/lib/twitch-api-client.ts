@@ -1,7 +1,6 @@
 import { authStore, clearAuth } from "@/stores/auth";
 import {
 	type ChattersResponse,
-	ChattersResponseSchema,
 	type TokenValidation,
 	TokenValidationSchema,
 	type TwitchUser,
@@ -565,9 +564,9 @@ export class TwitchAPI {
 	 * Requires moderator:read:chatters scope
 	 */
 	async getChatters(
-		broadcasterId: string,
-		moderatorId: string,
-		first = 100,
+		_broadcasterId: string,
+		_moderatorId: string,
+		_first = 100,
 	): Promise<ChattersResponse> {
 		// TODO: Implement - Get list of users connected to chat
 		// - Use this.request() with /chat/chatters endpoint
@@ -665,55 +664,55 @@ export class TwitchAPI {
 	/**
 	 * Gets channel-specific emotes for the broadcaster
 	 */
-	async getChannelEmotes(broadcasterId: string): Promise<any> {
+	// async getChannelEmotes(_broadcasterId: string): Promise<any> {
 		// TODO: Implement - Get custom emotes for specific channel
 		// - Use this.request() with /chat/emotes endpoint
 		// - Include broadcaster_id parameter
 		// - Return emotes with images and metadata
-		throw new Error("Method not implemented yet");
-	}
+		// throw new Error("Method not implemented yet");
+	// }
 
 	/**
 	 * Gets global Twitch emotes (Kappa, PogChamp, etc.)
 	 */
-	async getGlobalEmotes(): Promise<any> {
+	// async getGlobalEmotes(): Promise<any> {
 		// TODO: Implement - Get global Twitch emotes
 		// - Use this.request() with /chat/emotes/global endpoint
 		// - Return classic Twitch emotes available in all chats
-		throw new Error("Method not implemented yet");
-	}
+		// throw new Error("Method not implemented yet");
+	// }
 
 	/**
 	 * Gets channel-specific chat badges
 	 */
-	async getChannelBadges(broadcasterId: string): Promise<any> {
+	// async getChannelBadges(_broadcasterId: string): Promise<any> {
 		// TODO: Implement - Get custom badges for specific channel
 		// - Use this.request() with /chat/badges endpoint
 		// - Include broadcaster_id parameter
 		// - Return badge sets with versions and images
-		throw new Error("Method not implemented yet");
-	}
+		// throw new Error("Method not implemented yet");
+	// }
 
 	/**
 	 * Gets global Twitch chat badges
 	 */
-	async getGlobalBadges(): Promise<any> {
+	// async getGlobalBadges(): Promise<any> {
 		// TODO: Implement - Get global Twitch badges
 		// - Use this.request() with /chat/badges/global endpoint
 		// - Return global badge sets available in all chats
-		throw new Error("Method not implemented yet");
-	}
+		// throw new Error("Method not implemented yet");
+	// }
 
 	/**
 	 * Gets emotes from specific emote sets
 	 */
-	async getEmoteSets(emoteSetIds: string[]): Promise<any> {
+	// async getEmoteSets(_emoteSetIds: string[]): Promise<any> {
 		// TODO: Implement - Get emotes from specific sets
 		// - Use this.request() with /chat/emotes/set endpoint
 		// - Include emote_set_id parameters (max 25)
 		// - Return emotes grouped by set
-		throw new Error("Method not implemented yet");
-	}
+		// throw new Error("Method not implemented yet");
+	// }
 
 	// ================================
 	// 🔮 FUTURE METHODS PLACEHOLDERS
@@ -722,24 +721,24 @@ export class TwitchAPI {
 	/**
 	 * Checks if user is subscribed to a channel
 	 */
-	async checkUserSubscription(
-		broadcasterId: string,
-		userId: string,
-	): Promise<any> {
+	// async checkUserSubscription(
+	// 	_broadcasterId: string,
+	// 	_userId: string,
+	// ): Promise<any> {
 		// TODO: Implement - Check user subscription status
 		// - Use this.request() with /subscriptions/user endpoint
 		// - Requires user:read:subscriptions scope
 		// - Return subscription details or null if not subscribed
-		throw new Error("Method not implemented yet");
-	}
+	// 	throw new Error("Method not implemented yet");
+	// }
 
 	/**
 	 * Gets shared chat session information
 	 */
-	async getSharedChatSession(broadcasterId: string): Promise<any> {
+	// async getSharedChatSession(_broadcasterId: string): Promise<any> {
 		// TODO: Implement - Get shared chat session info
 		// - Use this.request() with /shared_chat/session endpoint
 		// - Return session participants and metadata
-		throw new Error("Method not implemented yet");
-	}
+	// 	throw new Error("Method not implemented yet");
+	// }
 }

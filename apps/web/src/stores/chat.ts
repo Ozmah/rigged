@@ -647,7 +647,7 @@ export const rigTheRaffle = () => {
 		isCapturing: false,
 		isRaffleRigged: true,
 	}));
-}
+};
 
 /**
  * Executes raffle and selects winners
@@ -679,7 +679,7 @@ export const executeRaffle = (): RaffleParticipant => {
 
 	console.log(chatStore.state.winners.at(-1));
 
-	// Need to make this clearer and avoid using !
+	// biome-ignore lint/style/noNonNullAssertion: Need to make this clearer and avoid using !
 	return chatStore.state.winners.at(-1)!;
 };
 

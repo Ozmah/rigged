@@ -8,7 +8,7 @@ export interface uiState {
 	isBellOpen: boolean;
 	haveNotifications: boolean;
 	showCancelDialog: boolean;
-	hideRaffleControls: boolean
+	hideRaffleControls: boolean;
 	isRaffleStateOpen: boolean;
 	error: string | null;
 }

@@ -1,5 +1,7 @@
+import { TrophyIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
+import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 import {
@@ -12,14 +14,11 @@ import { MicroMenu } from "@/components/raffle/micro-menu";
 import { SettingsPanel } from "@/components/raffle/settings-panel";
 import { ShowRaffleState } from "@/components/show-raffle-state";
 import { Badge } from "@/components/ui/badge";
-import { TrophyIcon } from "@phosphor-icons/react";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
 import { uiStore } from "@/stores/ui";
-
-import { motion } from "motion/react";
 
 export const Route = createFileRoute("/_layout/")({
 	component: RaffleComponent,
@@ -32,7 +31,7 @@ function RaffleComponent() {
 	const connectionStatus = useStore(
 		chatStore,
 		(state) => state.connectionStatus,
-	)
+	);
 	const raffleWinners = useStore(chatStore, (state) => state.winners);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 
@@ -40,7 +39,7 @@ function RaffleComponent() {
 	const isRaffleStateOpen = useStore(
 		uiStore,
 		(state) => state.isRaffleStateOpen,
-	)
+	);
 
 	// EventSub auto connects when authenticated
 	const { isConnected, isConnecting, sessionId, subscriptionId } =
@@ -51,7 +50,7 @@ function RaffleComponent() {
 		if (messages.length >= MAX_MESSAGES && contextRef.current?.isAtBottom) {
 			setTimeout(() => {
 				contextRef.current?.scrollToBottom();
-			}, 200)
+			}, 200);
 		}
 	}, [messages]);
 
@@ -101,20 +100,27 @@ function RaffleComponent() {
 									</div>
 								)}
 								{isRaffleRigged && raffleWinners.length && (
-									<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="-translate-x-1/2 absolute top-20 left-1/2 flex transform flex-col items-center justify-center rounded-xl border-2 border-yellow-400/30 bg-gradient-to-br from-yellow-50/95 to-amber-50/95 px-6 py-4 shadow-xl backdrop-blur-sm dark:border-yellow-400/40 dark:from-yellow-900/20 dark:to-amber-900/20">
-										<div className="mb-2 font-bold text-yellow-600 text-xl dark:text-yellow-400">
-											{raffleWinners.length == 1 ? (
+									<motion.div
+										initial={{ scale: 0 }}
+										animate={{ scale: 1 }}
+										className="-translate-x-1/2 absolute top-20 left-1/2 flex transform flex-col items-center justify-center rounded-xl border-2 border-yellow-400/30 bg-gradient-to-br from-yellow-50/95 to-amber-50/95 px-6 py-4 shadow-xl backdrop-blur-sm dark:border-yellow-400/40 dark:from-yellow-900/20 dark:to-amber-900/20"
+									>
+										<div className="mb-2 font-bold text-xl text-yellow-600 dark:text-yellow-400">
+											{raffleWinners.length === 1 ? (
 												<motion.div
 													className="flex items-center space-x-2"
-													initial={{ scale: 0, rotate: -90 }}
+													initial={{
+														scale: 0,
+														rotate: -90,
+													}}
 													animate={{
 														scale: 1,
 														rotate: 0,
-														y: [0, -8, 0]
+														y: [0, -8, 0],
 													}}
 													transition={{
 														duration: 0.5,
-														ease: "backOut"
+														ease: "backOut",
 													}}
 												>
 													<TrophyIcon />
@@ -122,21 +128,24 @@ function RaffleComponent() {
 												</motion.div>
 											) : (
 												<motion.div className="flex items-center space-x-2">
-													<TrophyIcon /><span>GANADORES</span>
+													<TrophyIcon />
+													<span>GANADORES</span>
 												</motion.div>
 											)}
 										</div>
-										<div className="flex flex-wrap gap-2 justify-center">
-											{raffleWinners.map((winner, index) => (
-												<motion.div
-													initial={{ scale: 0 }}
-													animate={{ scale: 1 }}
-													key={winner.userId}
-													className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
-												>
-													{winner.displayName}
-												</motion.div>
-											))}
+										<div className="flex flex-wrap justify-center gap-2">
+											{raffleWinners.map(
+												(winner) => (
+													<motion.div
+														initial={{ scale: 0 }}
+														animate={{ scale: 1 }}
+														key={winner.userId}
+														className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
+													>
+														{winner.displayName}
+													</motion.div>
+												),
+											)}
 										</div>
 									</motion.div>
 								)}
@@ -198,5 +207,5 @@ function RaffleComponent() {
 				</section>
 			</div>
 		</>
-	)
+	);
 }

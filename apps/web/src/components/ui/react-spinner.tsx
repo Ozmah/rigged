@@ -36,20 +36,19 @@ React Spinners Available Loaders:
 
 */
 
+// This component needs several corrections
 export function ReactSpinner() {
-	const [loading, setLoading] = useState(true);
-	const [color, setColor] = useState("#ffffff");
+	const [loading, _setLoading] = useState(true);
+	const [color, _setColor] = useState("#ffffff");
 
 	return (
-		<>
-			<PacmanLoader
-				color={color}
-				loading={loading}
-				cssOverride={override}
-				size={150}
-				aria-label="Loading Spinner"
-				data-testid="loader"
-			/>
-		</>
+		<PacmanLoader
+			color={color}
+			loading={loading}
+			cssOverride={override}
+			size={150}
+			aria-label="Loading Spinner"
+			data-testid="loader"
+		/>
 	);
 }

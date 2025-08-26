@@ -2,10 +2,9 @@ import {
 	createFileRoute,
 	useNavigate,
 	useRouteContext,
-	useRouter,
 } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
 	authStore,
 	setAuthError,
@@ -68,9 +67,7 @@ function AuthCallbackComponent() {
 		<div className="flex min-h-screen items-center justify-center bg-background">
 			<div className="text-center">
 				<h2 className="mb-2 font-bold text-2xl">Autenticando...</h2>
-				<p className="text-muted-foreground">
-					Aguantame las carnitas
-				</p>
+				<p className="text-muted-foreground">Aguantame las carnitas</p>
 			</div>
 		</div>
 	);

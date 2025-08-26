@@ -19,7 +19,7 @@ export function NumberInput({ minValue = 0, ...props }: NumberInputProps) {
 	const [counter, setCounter] = useState(props.value ?? 0);
 
 	const variantClassNameButton = (): string => {
-		return props.variant == "round" ? "rounded-full" : "";
+		return props.variant === "round" ? "rounded-full" : "";
 	};
 
 	// Still thinking about whether to use this
@@ -31,7 +31,7 @@ export function NumberInput({ minValue = 0, ...props }: NumberInputProps) {
 	) => {
 		const newCounterValue = Math.max(
 			minValue,
-			e.currentTarget.dataset.action == "increment"
+			e.currentTarget.dataset.action === "increment"
 				? counter + 1
 				: counter - 1,
 		);

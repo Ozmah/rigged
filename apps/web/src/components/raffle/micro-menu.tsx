@@ -37,7 +37,7 @@ export function MicroMenu({ className = "" }: MicroMenuProps) {
 							microMenuSelected === id ? "default" : "secondary"
 						}
 						size="icon"
-						className="size-10"
+						className={`size-10 ${className}`}
 						onClick={() => handleMenuClick(id)}
 						title={label}
 					>
