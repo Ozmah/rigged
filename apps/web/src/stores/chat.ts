@@ -96,6 +96,7 @@ export interface ChatState {
 	participants: RaffleParticipant[];
 	winners: RaffleParticipant[];
 	isCapturing: boolean;
+	isRaffleRigged: boolean;
 	currentRound: number;
 
 	// Statistics
@@ -202,6 +203,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - participants: [] - No participants captured at startup
  * - winners: [] - No winners selected initially
  * - isCapturing: false - Raffle capture is disabled until explicitly started by user
+ * - isRaffleRigged: false - Raffle is in the final step to select a winner
  * - currentRound: 0 - Raffle system starts at round zero
  *
  * Statistics Tracking:
@@ -241,6 +243,7 @@ const initialState: ChatState = {
 	participants: [],
 	winners: [],
 	isCapturing: false,
+	isRaffleRigged: false,
 	currentRound: 0,
 
 	stats: {
@@ -636,6 +639,17 @@ export const stopRaffleCapture = () => {
 };
 
 /**
+ * Final state before picking winner
+ */
+export const rigTheRaffle = () => {
+	chatStore.setState((state) => ({
+		...state,
+		isCapturing: false,
+		isRaffleRigged: true,
+	}));
+}
+
+/**
  * Executes raffle and selects winners
  * @returns Selected winners
  */
@@ -714,6 +728,17 @@ function selectRandomParticipant(
 }
 
 /**
+ * Clears the participants only
+ */
+export const clearParticipants = () => {
+	chatStore.setState((state) => ({
+		...state,
+		// Will determine later if this function is justified
+		participants: [],
+	}));
+};
+
+/**
  * Resets raffle state for new raffle
  */
 export const resetRaffle = () => {
@@ -722,6 +747,7 @@ export const resetRaffle = () => {
 		participants: [],
 		winners: [],
 		isCapturing: false,
+		isRaffleRigged: false,
 		currentRound: 0,
 		stats: {
 			...state.stats,

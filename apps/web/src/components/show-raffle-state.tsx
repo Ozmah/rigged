@@ -41,6 +41,7 @@ export function ShowRaffleState({ className = "" }: ShowRaffleStateProps) {
 		participants: chatState.participants.length,
 		winners: chatState.winners.length,
 		isCapturing: chatState.isCapturing,
+		isRaffleRigged: chatState.isRaffleRigged,
 		currentRound: chatState.currentRound,
 		stats: chatState.stats,
 		debug: chatState.debug,

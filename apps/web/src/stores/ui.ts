@@ -7,6 +7,8 @@ export interface uiState {
 	microMenuSelected: "raffle" | "settings" | "dev";
 	isBellOpen: boolean;
 	haveNotifications: boolean;
+	showCancelDialog: boolean;
+	hideRaffleControls: boolean
 	isRaffleStateOpen: boolean;
 	error: string | null;
 }
@@ -64,6 +66,8 @@ const initialState: uiState = {
 	microMenuSelected: "raffle",
 	isBellOpen: false,
 	haveNotifications: false,
+	showCancelDialog: false,
+	hideRaffleControls: false,
 	isRaffleStateOpen: false,
 	error: null,
 	...loadPersistedUiState(), // Hydrate from localStorage

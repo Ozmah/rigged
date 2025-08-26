@@ -4,7 +4,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { MicroMenu } from "@/components/raffle/micro-menu";
-import { ReactSpinner } from "@/components/ui/loader";
+import { ReactSpinner } from "@/components/ui/react-spinner";
 
 export const Route = createFileRoute("/_layout/sandbox")({
 	component: HomeComponent,

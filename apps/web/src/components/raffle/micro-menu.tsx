@@ -1,7 +1,7 @@
 import { GiftIcon, SlidersIcon, TestTubeIcon } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
 import { Button } from "@/components/ui/button";
-import { uiStore } from "@/stores/ui";
+import { uiStore, updateUiState } from "@/stores/ui";
 
 interface MicroMenuProps {
 	className?: string;
@@ -20,10 +20,11 @@ export function MicroMenu({ className = "" }: MicroMenuProps) {
 	);
 
 	const handleMenuClick = (menuId: "raffle" | "settings" | "dev") => {
-		uiStore.setState((state) => ({
-			...state,
-			microMenuSelected: menuId,
-		}));
+		updateUiState({ microMenuSelected: menuId });
+		// uiStore.setState((state) => ({
+		// 	...state,
+		// 	microMenuSelected: menuId,
+		// }));
 	};
 
 	return (

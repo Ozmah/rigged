@@ -14,7 +14,6 @@ import { Route as CallbackRouteImport } from './routes/callback'
 import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSandboxRouteImport } from './routes/_layout/sandbox'
-import { Route as LayoutRaffleRouteImport } from './routes/_layout/raffle'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -40,23 +39,16 @@ const LayoutSandboxRoute = LayoutSandboxRouteImport.update({
   path: '/sandbox',
   getParentRoute: () => LayoutRouteRoute,
 } as any)
-const LayoutRaffleRoute = LayoutRaffleRouteImport.update({
-  id: '/raffle',
-  path: '/raffle',
-  getParentRoute: () => LayoutRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/raffle': typeof LayoutRaffleRoute
   '/sandbox': typeof LayoutSandboxRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/raffle': typeof LayoutRaffleRoute
   '/sandbox': typeof LayoutSandboxRoute
   '/': typeof LayoutIndexRoute
 }
@@ -65,21 +57,19 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteRouteWithChildren
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
-  '/_layout/raffle': typeof LayoutRaffleRoute
   '/_layout/sandbox': typeof LayoutSandboxRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/callback' | '/login' | '/raffle' | '/sandbox' | '/'
+  fullPaths: '/callback' | '/login' | '/sandbox' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/callback' | '/login' | '/raffle' | '/sandbox' | '/'
+  to: '/callback' | '/login' | '/sandbox' | '/'
   id:
     | '__root__'
     | '/_layout'
     | '/callback'
     | '/login'
-    | '/_layout/raffle'
     | '/_layout/sandbox'
     | '/_layout/'
   fileRoutesById: FileRoutesById
@@ -127,24 +117,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSandboxRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
-    '/_layout/raffle': {
-      id: '/_layout/raffle'
-      path: '/raffle'
-      fullPath: '/raffle'
-      preLoaderRoute: typeof LayoutRaffleRouteImport
-      parentRoute: typeof LayoutRouteRoute
-    }
   }
 }
 
 interface LayoutRouteRouteChildren {
-  LayoutRaffleRoute: typeof LayoutRaffleRoute
   LayoutSandboxRoute: typeof LayoutSandboxRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
-  LayoutRaffleRoute: LayoutRaffleRoute,
   LayoutSandboxRoute: LayoutSandboxRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }

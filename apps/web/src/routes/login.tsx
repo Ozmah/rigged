@@ -68,14 +68,19 @@ function LoginComponent() {
 									</h3>
 									<ul className="space-y-1 text-muted-foreground text-sm">
 										<li>
-											• Sorteos en tiempo real del chat
+											• Sorteos en tiempo real con el chat
+										</li>
+										<li>• Los ganadores que quieras</li>
+										<li>
+											• Lista de participantes/ganadores
 										</li>
 										<li>
-											• Múltiples ganadores configurables
+											• Todas las opciones que se me
+											ocurrieron
 										</li>
-										<li>• Exportar resultados completos</li>
 										<li>
-											• Rondas múltiples sin duplicados
+											• ¿Sugerencias? [Poner medio de
+											contacto]
 										</li>
 									</ul>
 								</div>

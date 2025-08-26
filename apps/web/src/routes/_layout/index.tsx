@@ -1,22 +1,202 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ReactSpinner } from "@/components/ui/loader";
+import { useStore } from "@tanstack/react-store";
+import { useEffect, useRef } from "react";
+import type { StickToBottomContext } from "use-stick-to-bottom";
+import {
+	Conversation,
+	ConversationContent,
+	ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import { EventSubDiagnostics } from "@/components/eventsub-diagnostics";
+import { MicroMenu } from "@/components/raffle/micro-menu";
+import { SettingsPanel } from "@/components/raffle/settings-panel";
+import { ShowRaffleState } from "@/components/show-raffle-state";
+import { Badge } from "@/components/ui/badge";
+import { TrophyIcon } from "@phosphor-icons/react";
+import { ServerStatus } from "@/components/ui/server-status";
+import { TypographyH4 } from "@/components/ui/typography";
+import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
+import { chatStore, MAX_MESSAGES } from "@/stores/chat";
+import { uiStore } from "@/stores/ui";
+
+import { motion } from "motion/react";
 
 export const Route = createFileRoute("/_layout/")({
-	component: HomeComponent,
+	component: RaffleComponent,
 });
 
-function HomeComponent() {
+function RaffleComponent() {
+	// Chat state
+	const messages = useStore(chatStore, (state) => state.messages);
+	const participants = useStore(chatStore, (state) => state.participants);
+	const connectionStatus = useStore(
+		chatStore,
+		(state) => state.connectionStatus,
+	)
+	const raffleWinners = useStore(chatStore, (state) => state.winners);
+	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
+
+	// Debug
+	const isRaffleStateOpen = useStore(
+		uiStore,
+		(state) => state.isRaffleStateOpen,
+	)
+
+	// EventSub auto connects when authenticated
+	const { isConnected, isConnecting, sessionId, subscriptionId } =
+		useTwitchEventSub();
+	const contextRef = useRef<StickToBottomContext>(null);
+
+	useEffect(() => {
+		if (messages.length >= MAX_MESSAGES && contextRef.current?.isAtBottom) {
+			setTimeout(() => {
+				contextRef.current?.scrollToBottom();
+			}, 200)
+		}
+	}, [messages]);
+
 	return (
 		<>
-			<div className="col-start-3 row-span-5 row-start-2">
-				<ReactSpinner />
+			{isRaffleStateOpen && (
+				<>
+					<div className="col-span-2 col-start-9 row-span-3 row-start-2">
+						<ShowRaffleState />
+					</div>
+					<div className="col-span-2 col-start-9 row-span-2 row-start-5">
+						<EventSubDiagnostics
+							sessionId={sessionId}
+							subscriptionId={subscriptionId}
+							isConnected={isConnected}
+							isConnecting={isConnecting}
+						/>
+					</div>
+				</>
+			)}
+			<div className="col-start-2 row-span-5 row-start-2">
+				<MicroMenu />
 			</div>
-			<div className="col-span-2 col-start-4 row-span-5 row-start-2">
-				TEST
+			<div className="col-span-2 col-start-3 row-span-6 row-start-2">
+				<SettingsPanel />
 			</div>
-			<div className="col-span-3 col-start-6 row-span-6 row-start-2">
-				TEST
+			<div className="col-span-4 col-start-5 row-span-5 row-start-2">
+				{/* Chat Section */}
+				<section className="rounded-lg border">
+					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
+						<ServerStatus
+							status={connectionStatus}
+							ping={true}
+							size="md"
+						/>
+						<TypographyH4>Chat</TypographyH4>
+					</div>
+					<div className="relative">
+						<Conversation
+							contextRef={contextRef}
+							className="h-[calc((100vh-64px)*6/7)]"
+						>
+							<ConversationContent>
+								{participants.length > 0 && (
+									<div className="-translate-x-1/2 absolute top-2 left-1/2 flex transform items-center justify-center rounded-lg border bg-card px-3 py-2 shadow">
+										{`Participantes de la rifa ${participants.length}`}
+									</div>
+								)}
+								{isRaffleRigged && raffleWinners.length && (
+									<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="-translate-x-1/2 absolute top-20 left-1/2 flex transform flex-col items-center justify-center rounded-xl border-2 border-yellow-400/30 bg-gradient-to-br from-yellow-50/95 to-amber-50/95 px-6 py-4 shadow-xl backdrop-blur-sm dark:border-yellow-400/40 dark:from-yellow-900/20 dark:to-amber-900/20">
+										<div className="mb-2 font-bold text-yellow-600 text-xl dark:text-yellow-400">
+											{raffleWinners.length == 1 ? (
+												<motion.div
+													className="flex items-center space-x-2"
+													initial={{ scale: 0, rotate: -90 }}
+													animate={{
+														scale: 1,
+														rotate: 0,
+														y: [0, -8, 0]
+													}}
+													transition={{
+														duration: 0.5,
+														ease: "backOut"
+													}}
+												>
+													<TrophyIcon />
+													<span>GANADOR</span>
+												</motion.div>
+											) : (
+												<motion.div className="flex items-center space-x-2">
+													<TrophyIcon /><span>GANADORES</span>
+												</motion.div>
+											)}
+										</div>
+										<div className="flex flex-wrap gap-2 justify-center">
+											{raffleWinners.map((winner, index) => (
+												<motion.div
+													initial={{ scale: 0 }}
+													animate={{ scale: 1 }}
+													key={winner.userId}
+													className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
+												>
+													{winner.displayName}
+												</motion.div>
+											))}
+										</div>
+									</motion.div>
+								)}
+								{messages.length === 0 ? (
+									<div className="flex h-full items-center justify-center text-muted-foreground">
+										{isConnected
+											? "Esperando mensajes del chat..."
+											: isConnecting
+												? "Conectando al chat..."
+												: "El chat se conecta automáticamente"}
+									</div>
+								) : (
+									<div className="space-y-3">
+										{messages.map((message) => (
+											<div
+												key={message.id}
+												className={`flex gap-2 ${
+													message.isParticipant
+														? "rounded border border-green-500/20 p-2"
+														: ""
+												}`}
+											>
+												<span
+													className="font-semibold"
+													style={{
+														color:
+															message.color ||
+															"#000000",
+													}}
+												>
+													{message.displayName}:
+												</span>
+												<span>{message.content}</span>
+												{message.isParticipant && (
+													<Badge
+														variant="secondary"
+														className="ml-auto border-green-500/20 bg-green-500/10 text-green-600 text-xs dark:text-green-400"
+													>
+														Participante
+													</Badge>
+												)}
+												{message.cheer && (
+													<Badge
+														variant="outline"
+														className="text-xs"
+													>
+														{message.cheer.bits}{" "}
+														bits
+													</Badge>
+												)}
+											</div>
+										))}
+									</div>
+								)}
+							</ConversationContent>
+							<ConversationScrollButton />
+						</Conversation>
+					</div>
+				</section>
 			</div>
 		</>
-	);
+	)
 }

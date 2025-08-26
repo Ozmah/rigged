@@ -31,7 +31,7 @@ function AuthCallbackComponent() {
 
 				setAuthSuccess(result.user, result.accessToken, result.state);
 				navigate({
-					to: "/raffle",
+					to: "/",
 				});
 			} catch (error) {
 				console.error("Auth callback error:", error);
@@ -67,9 +67,9 @@ function AuthCallbackComponent() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background">
 			<div className="text-center">
-				<h2 className="mb-2 font-bold text-2xl">Authenticating...</h2>
+				<h2 className="mb-2 font-bold text-2xl">Autenticando...</h2>
 				<p className="text-muted-foreground">
-					Please wait while we log you in.
+					Aguantame las carnitas
 				</p>
 			</div>
 		</div>

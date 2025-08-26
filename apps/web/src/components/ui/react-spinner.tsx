@@ -8,6 +8,7 @@ const override: CSSProperties = {
 };
 
 /*
+
 React Spinners Available Loaders:
 - BarLoader
 - BeatLoader
@@ -33,9 +34,6 @@ React Spinners Available Loaders:
 - SquareLoader
 - SyncLoader
 
-Usage example:
-import { BeatLoader } from "react-spinners";
-<BeatLoader color="#36d7b7" />
 */
 
 export function ReactSpinner() {
