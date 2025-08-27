@@ -1,9 +1,22 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Header } from "@/components/header";
+import { detectDevice } from "@/lib/device-detection";
 import { authStore } from "@/stores/auth";
 
 export const Route = createFileRoute("/_layout")({
 	beforeLoad: ({ location }) => {
+		// Temp till I get the mobile view working
+		const device = detectDevice();
+		console.log(device);
+		if (device.isMobile) {
+			throw redirect({
+				to: "/nope",
+				search: {
+					redirect: location.href,
+				},
+			});
+		}
+
 		if (!authStore.state.isAuthenticated) {
 			throw redirect({
 				to: "/login",

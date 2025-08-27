@@ -1,10 +1,10 @@
-import { useId } from "react";
 import {
 	CaretDownIcon,
 	EraserIcon,
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
+import { useId } from "react";
 import { toast } from "sonner";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
@@ -494,9 +494,8 @@ export function SettingsPanel() {
 													{raffleConfig.subsExtraTickets && (
 														<div className="fade-in slide-in-from-top-2 animate-in duration-200 ease-out">
 															<Label className="my-1 text-foreground text-sm">
-																¿Cuántos
-																boletos más
-																por sub?
+																¿Cuántos boletos
+																más por sub?
 															</Label>
 															<NumberInput
 																key="subsExtraValue"
@@ -553,9 +552,8 @@ export function SettingsPanel() {
 													{raffleConfig.vipsExtraTickets && (
 														<div className="fade-in slide-in-from-top-2 animate-in duration-200 ease-out">
 															<Label className="my-1 text-foreground text-sm">
-																¿Cuántos
-																boletos más
-																por VIP?
+																¿Cuántos boletos
+																más por VIP?
 															</Label>
 															<NumberInput
 																key="vipsExtraValue"

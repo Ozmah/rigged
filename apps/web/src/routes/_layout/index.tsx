@@ -134,18 +134,16 @@ function RaffleComponent() {
 											)}
 										</div>
 										<div className="flex flex-wrap justify-center gap-2">
-											{raffleWinners.map(
-												(winner) => (
-													<motion.div
-														initial={{ scale: 0 }}
-														animate={{ scale: 1 }}
-														key={winner.userId}
-														className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
-													>
-														{winner.displayName}
-													</motion.div>
-												),
-											)}
+											{raffleWinners.map((winner) => (
+												<motion.div
+													initial={{ scale: 0 }}
+													animate={{ scale: 1 }}
+													key={winner.userId}
+													className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
+												>
+													{winner.displayName}
+												</motion.div>
+											))}
 										</div>
 									</motion.div>
 								)}

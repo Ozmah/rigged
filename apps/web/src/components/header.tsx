@@ -1,6 +1,6 @@
 import { BellIcon, DiceThreeIcon } from "@phosphor-icons/react";
-import { UserDropdown } from "./user-dropdown";
 import { Button } from "@/components/ui/button";
+import { UserDropdown } from "@/components/user-dropdown";
 
 interface HeaderProps {
 	className?: string;
@@ -27,7 +27,11 @@ export function Header({ className = "" }: HeaderProps) {
 				{/* Actions section */}
 				<div className="flex items-center gap-3">
 					{/* Notifications - solo desktop */}
-					<Button variant="secondary" size="icon" className="rounded-full p-2 hover:bg-sidebar-accent-foreground">
+					<Button
+						variant="secondary"
+						size="icon"
+						className="rounded-full p-2 hover:bg-sidebar-accent-foreground"
+					>
 						<BellIcon className="h-5 w-5" />
 					</Button>
 

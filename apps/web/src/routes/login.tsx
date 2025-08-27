@@ -10,7 +10,6 @@ import {
 import { authStore, setAuthError } from "@/stores/auth";
 
 export const Route = createFileRoute("/login")({
-	// ...createGuestGuard(),
 	component: LoginComponent,
 });
 

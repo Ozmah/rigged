@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as NopeRouteImport } from './routes/nope'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CallbackRouteImport } from './routes/callback'
 import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSandboxRouteImport } from './routes/_layout/sandbox'
 
+const NopeRoute = NopeRouteImport.update({
+  id: '/nope',
+  path: '/nope',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -43,12 +49,14 @@ const LayoutSandboxRoute = LayoutSandboxRouteImport.update({
 export interface FileRoutesByFullPath {
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
+  '/nope': typeof NopeRoute
   '/sandbox': typeof LayoutSandboxRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
+  '/nope': typeof NopeRoute
   '/sandbox': typeof LayoutSandboxRoute
   '/': typeof LayoutIndexRoute
 }
@@ -57,19 +65,21 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteRouteWithChildren
   '/callback': typeof CallbackRoute
   '/login': typeof LoginRoute
+  '/nope': typeof NopeRoute
   '/_layout/sandbox': typeof LayoutSandboxRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/callback' | '/login' | '/sandbox' | '/'
+  fullPaths: '/callback' | '/login' | '/nope' | '/sandbox' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/callback' | '/login' | '/sandbox' | '/'
+  to: '/callback' | '/login' | '/nope' | '/sandbox' | '/'
   id:
     | '__root__'
     | '/_layout'
     | '/callback'
     | '/login'
+    | '/nope'
     | '/_layout/sandbox'
     | '/_layout/'
   fileRoutesById: FileRoutesById
@@ -78,10 +88,18 @@ export interface RootRouteChildren {
   LayoutRouteRoute: typeof LayoutRouteRouteWithChildren
   CallbackRoute: typeof CallbackRoute
   LoginRoute: typeof LoginRoute
+  NopeRoute: typeof NopeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/nope': {
+      id: '/nope'
+      path: '/nope'
+      fullPath: '/nope'
+      preLoaderRoute: typeof NopeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -138,6 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   LayoutRouteRoute: LayoutRouteRouteWithChildren,
   CallbackRoute: CallbackRoute,
   LoginRoute: LoginRoute,
+  NopeRoute: NopeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

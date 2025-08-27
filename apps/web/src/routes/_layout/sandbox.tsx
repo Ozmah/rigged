@@ -1,6 +1,4 @@
-import {
-	createFileRoute,
-} from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 
 export const Route = createFileRoute("/_layout/sandbox")({

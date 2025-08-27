@@ -665,53 +665,53 @@ export class TwitchAPI {
 	 * Gets channel-specific emotes for the broadcaster
 	 */
 	// async getChannelEmotes(_broadcasterId: string): Promise<any> {
-		// TODO: Implement - Get custom emotes for specific channel
-		// - Use this.request() with /chat/emotes endpoint
-		// - Include broadcaster_id parameter
-		// - Return emotes with images and metadata
-		// throw new Error("Method not implemented yet");
+	// TODO: Implement - Get custom emotes for specific channel
+	// - Use this.request() with /chat/emotes endpoint
+	// - Include broadcaster_id parameter
+	// - Return emotes with images and metadata
+	// throw new Error("Method not implemented yet");
 	// }
 
 	/**
 	 * Gets global Twitch emotes (Kappa, PogChamp, etc.)
 	 */
 	// async getGlobalEmotes(): Promise<any> {
-		// TODO: Implement - Get global Twitch emotes
-		// - Use this.request() with /chat/emotes/global endpoint
-		// - Return classic Twitch emotes available in all chats
-		// throw new Error("Method not implemented yet");
+	// TODO: Implement - Get global Twitch emotes
+	// - Use this.request() with /chat/emotes/global endpoint
+	// - Return classic Twitch emotes available in all chats
+	// throw new Error("Method not implemented yet");
 	// }
 
 	/**
 	 * Gets channel-specific chat badges
 	 */
 	// async getChannelBadges(_broadcasterId: string): Promise<any> {
-		// TODO: Implement - Get custom badges for specific channel
-		// - Use this.request() with /chat/badges endpoint
-		// - Include broadcaster_id parameter
-		// - Return badge sets with versions and images
-		// throw new Error("Method not implemented yet");
+	// TODO: Implement - Get custom badges for specific channel
+	// - Use this.request() with /chat/badges endpoint
+	// - Include broadcaster_id parameter
+	// - Return badge sets with versions and images
+	// throw new Error("Method not implemented yet");
 	// }
 
 	/**
 	 * Gets global Twitch chat badges
 	 */
 	// async getGlobalBadges(): Promise<any> {
-		// TODO: Implement - Get global Twitch badges
-		// - Use this.request() with /chat/badges/global endpoint
-		// - Return global badge sets available in all chats
-		// throw new Error("Method not implemented yet");
+	// TODO: Implement - Get global Twitch badges
+	// - Use this.request() with /chat/badges/global endpoint
+	// - Return global badge sets available in all chats
+	// throw new Error("Method not implemented yet");
 	// }
 
 	/**
 	 * Gets emotes from specific emote sets
 	 */
 	// async getEmoteSets(_emoteSetIds: string[]): Promise<any> {
-		// TODO: Implement - Get emotes from specific sets
-		// - Use this.request() with /chat/emotes/set endpoint
-		// - Include emote_set_id parameters (max 25)
-		// - Return emotes grouped by set
-		// throw new Error("Method not implemented yet");
+	// TODO: Implement - Get emotes from specific sets
+	// - Use this.request() with /chat/emotes/set endpoint
+	// - Include emote_set_id parameters (max 25)
+	// - Return emotes grouped by set
+	// throw new Error("Method not implemented yet");
 	// }
 
 	// ================================
@@ -725,10 +725,10 @@ export class TwitchAPI {
 	// 	_broadcasterId: string,
 	// 	_userId: string,
 	// ): Promise<any> {
-		// TODO: Implement - Check user subscription status
-		// - Use this.request() with /subscriptions/user endpoint
-		// - Requires user:read:subscriptions scope
-		// - Return subscription details or null if not subscribed
+	// TODO: Implement - Check user subscription status
+	// - Use this.request() with /subscriptions/user endpoint
+	// - Requires user:read:subscriptions scope
+	// - Return subscription details or null if not subscribed
 	// 	throw new Error("Method not implemented yet");
 	// }
 
@@ -736,9 +736,9 @@ export class TwitchAPI {
 	 * Gets shared chat session information
 	 */
 	// async getSharedChatSession(_broadcasterId: string): Promise<any> {
-		// TODO: Implement - Get shared chat session info
-		// - Use this.request() with /shared_chat/session endpoint
-		// - Return session participants and metadata
+	// TODO: Implement - Get shared chat session info
+	// - Use this.request() with /shared_chat/session endpoint
+	// - Return session participants and metadata
 	// 	throw new Error("Method not implemented yet");
 	// }
 }
