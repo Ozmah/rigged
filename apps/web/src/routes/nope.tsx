@@ -19,7 +19,7 @@ gap-2 md:grid-cols-[repeat(10,minmax(10px,1fr))]">
 					animationDelay: 900,
 					scale: 1
 				}}
-				className="col-span-full row-start-4 row-span-auto md:col-start-4 md:col-span-4
+				className="col-span-full row-start-3 row-span-auto md:col-start-4 md:col-span-4
 md:row-span-3 md:row-start-3"
 			>
 				<TypographyH1 className="text-8xl mb-8">NOPE!</TypographyH1>
