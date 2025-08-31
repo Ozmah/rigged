@@ -20,7 +20,7 @@ export const TwitchUserSchema = z.object({
 	broadcaster_type: z.enum(["", "affiliate", "partner"]).default(""),
 	description: z.string(),
 	profile_image_url: z.url(),
-	offline_image_url: z.url(),
+	offline_image_url: z.union([z.url(), z.literal("")]),
 	// DEPRECATED "Any data in this field is not valid and should not be used."
 	// https://dev.twitch.tv/docs/api/reference/#get-users
 	view_count: z.number().optional(),
