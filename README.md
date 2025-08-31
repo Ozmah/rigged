@@ -5,22 +5,20 @@ A simple, fast, and free raffle tool for Twitch streamers. Run real-time chat ra
 ## ✨ Features
 
 - **Real-time chat integration** - Automatically captures chat messages during raffle periods
-- **Multiple winners** - Configure how many winners you need for each raffle
-- **Export results** - Save complete raffle data and winner lists
-- **Multiple rounds** - Run consecutive rounds without duplicate winners
-- **Clean interface** - Simple, distraction-free design that won't overwhelm your stream
-- **Free forever** - No subscriptions, no limits, no hidden costs
+- **Multiple winners** - You can draw one or more winners, as many as there are participants
+- **Export results** - Save complete raffle data and winner lists (👷 under construction)
+- **Open Source** - Feel free to use it from your computer or host it on your own server
 
 ## 🎯 Who is this for?
 
-Small streamers who need a reliable raffle tool without breaking the bank. If you're tired of limited free tools or expensive subscriptions, Rigged gives you everything you need to run engaging raffles for your community.
+Small streamers who need a reliable raffle tool without breaking the bank. If you're tired of the crappy tools out there, we're trying to build a simple tool that can change that and you can use from your computer.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - **Node.js 18+** - [Download here](https://nodejs.org/)
-- **Twitch Application** - You'll need to create one (we'll guide you through this)
+- **Twitch Application** - You'll need to create one (we'll guide you through the process) (🏗️ we're working on this)
 
 ### Windows Setup
 
@@ -34,7 +32,7 @@ Small streamers who need a reliable raffle tool without breaking the bank. If yo
    - Go to [Twitch Developer Console](https://dev.twitch.tv/console)
    - Click "Register Your Application"
    - Name: `Your Stream Raffles` (or whatever you prefer)
-   - OAuth Redirect URL: `https://localhost:3001/auth/callback`
+   - OAuth Redirect URL: `https://localhost:3001/callback`
    - Category: `Application Integration`
    - Copy your **Client ID**
 
@@ -90,17 +88,18 @@ Small streamers who need a reliable raffle tool without breaking the bank. If yo
 3. **You're ready!** - Start running raffles immediately
 
 ### Running a Raffle
-1. **Start capturing** - Click "Start Raffle" when you're ready to begin
-2. **Let viewers participate** - Anyone who chats during this period is automatically entered
-3. **Stop and draw** - Click "Stop & Draw Winners" to select random winners
-4. **Announce results** - Winners are displayed clearly for easy announcement
-5. **Export if needed** - Save the complete participant list and results
+1. **Keyword** - First add the keyword you want chat to write
+2. **Start capturing** - Click "Start Raffle" when you're ready to begin
+3. **Let viewers participate** - Anyone who chats and writes the keyword during this period is automatically entered
+4. **Stop and prepare** - Click "Next step!" to stop capturing and get ready to select the winner
+5. **Pick a winner** - Press "Pick a winner!" to select the first winner, the button allows you to pick more winners
+6. **Export if needed** - Save the complete participant list and results (🛠️ almost there)
 
 ### Tips for Success
 - **Announce clearly** when raffles start and end
 - **Set clear rules** about participation (one message = one entry, etc.)
-- **Use multiple rounds** for bigger giveaways to create more excitement
-- **Export results** to verify fairness if questioned
+- **Use multiple rounds** 👷 it's planned to add "discarded" to add excitement to the raffle
+- **Export results** to verify fairness if questioned (👷 you know...)
 
 ## ⚙️ Configuration
 
@@ -146,7 +145,7 @@ bun preview
 - **Local only** - All data stays on your computer
 - **No tracking** - We don't collect any analytics or personal data
 - **Minimal permissions** - Only requests what's needed for core functionality
-- **Open source** - You can verify exactly what the code does
+- **Open source** - You can verify exactly what the code does so you can see that we're not pulling any shenanigans
 
 ## 📋 System Requirements
 
@@ -160,7 +159,7 @@ bun preview
 ### "Can't connect to Twitch"
 - Check your internet connection
 - Verify your Client ID is correct in the `.env` file
-- Make sure the redirect URL in your Twitch app matches exactly: `https://localhost:3001/auth/callback`
+- Make sure the redirect URL in your Twitch app matches exactly: `https://localhost:3001/callback`
 
 ### "Permission denied" errors
 - Make sure you granted all requested permissions during login

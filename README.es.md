@@ -1,26 +1,24 @@
 # 🎲 Rigged
 
-Una herramienta simple, rápida y gratuita para sorteos en Twitch. Realiza sorteos en tiempo real del chat con múltiples ganadores, exporta resultados y mantén a tu audiencia comprometida.
+Una herramienta simple, rápida y gratuita para sorteos en Twitch. Realiza sorteos en tiempo real del chat con múltiples ganadores, exporta resultados y mantén a tu audiencia involucrada.
 
 ## ✨ Características
 
 - **Integración de chat en tiempo real** - Captura automáticamente mensajes del chat durante los períodos de sorteo
-- **Múltiples ganadores** - Configura cuántos ganadores necesitas para cada sorteo
-- **Exportar resultados** - Guarda datos completos del sorteo y listas de ganadores
-- **Múltiples rondas** - Ejecuta rondas consecutivas sin ganadores duplicados
-- **Interfaz limpia** - Diseño simple y sin distracciones que no abrumará tu stream
-- **Gratis para siempre** - Sin suscripciones, sin límites, sin costos ocultos
+- **Múltiples ganadores** - Puedes sacar uno o más ganadores, tantos como participantes haya
+- **Exportar resultados** - Guarda datos completos del sorteo y listas de ganadores (👷 en construcción)
+- **Código Libre** - Siéntete libre de usarlo desde tu computadora o bien, alójalo en un servidor propio.
 
 ## 🎯 ¿Para quién es esto?
 
-Streamers pequeños que necesitan una herramienta de sorteos confiable sin quebrar el cochinito. Si estás cansado de herramientas gratuitas limitadas o suscripciones caras, Rigged te da todo lo que necesitas para hacer sorteos atractivos para tu comunidad.
+Streamers pequeños que necesitan una herramienta de sorteos confiable sin quebrar el cochinito. Si estas cansado de las cochinadas que hay en el mercado, estamos tratando de construir una herramienta sencilla que pueda cambiar eso y que puedas usar desde tu computadora.
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos Previos
 
 - **Node.js 18+** - [Descargar aquí](https://nodejs.org/)
-- **Aplicación de Twitch** - Necesitarás crear una (te guiaremos en el proceso)
+- **Aplicación de Twitch** - Necesitarás crear una (te guiaremos en el proceso) (🏗️ estamos trabajando)
 
 ### Configuración en Windows
 
@@ -90,17 +88,18 @@ Streamers pequeños que necesitan una herramienta de sorteos confiable sin quebr
 3. **¡Estás listo!** - Comienza a hacer sorteos inmediatamente
 
 ### Ejecutando un Sorteo
-1. **Inicia captura** - Haz clic en "Iniciar Sorteo" cuando estés listo para comenzar
-2. **Deja que los viewers participen** - Cualquiera que chatee durante este período se inscribe automáticamente
-3. **Detén y sortea** - Haz clic en "Detener y Sortear Ganadores" para seleccionar ganadores aleatorios
-4. **Anuncia resultados** - Los ganadores se muestran claramente para anunciar fácilmente
-5. **Exporta si es necesario** - Guarda la lista completa de participantes y resultados
+1. **Palabra Clave** - Primero agrega la palabra clave que quieres que el chat escriba
+2. **Inicia captura** - Haz clic en "Iniciar Sorteo" cuando estés listo para comenzar
+3. **Deja que los viewers participen** - Cualquiera que chatee y escriba la palabra clave durante este período se inscribe automáticamente
+4. **Detén y sortea** - Haz clic en "¡Siguiente paso!" para dejar de capturar y alistarte para seleccionar al ganador
+5. **Elegir un ganador** - Presiona "¡Elegir un ganador!" para seleccionar al primer ganador, el botón te permite elegir más ganadores
+6. **Exporta si es necesario** - Guarda la lista completa de participantes y resultados (🛠️ ya merito)
 
 ### Consejos para el Éxito
 - **Anuncia claramente** cuándo empiezan y terminan los sorteos
 - **Establece reglas claras** sobre participación (un mensaje = una entrada, etc.)
-- **Usa múltiples rondas** para sorteos más grandes para crear más emoción
-- **Exporta resultados** para verificar imparcialidad si te lo cuestionan
+- **Usa múltiples rondas** 👷 está planeado agregar "descartados" para agregar emoción al sorteo
+- **Exporta resultados** para verificar imparcialidad si te lo cuestionan (👷 ya saben...)
 
 ## ⚙️ Configuración
 
@@ -146,7 +145,7 @@ bun preview
 - **Solo local** - Todos los datos permanecen en tu computadora
 - **Sin rastreo** - No recopilamos ningún análisis o datos personales
 - **Permisos mínimos** - Solo solicita lo necesario para la funcionalidad principal
-- **Código abierto** - Puedes verificar exactamente qué hace el código
+- **Código abierto** - Puedes verificar exactamente qué hace el código para que vean que no gana puro primo
 
 ## 📋 Requisitos del Sistema
 
