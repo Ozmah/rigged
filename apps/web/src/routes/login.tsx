@@ -7,7 +7,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Rocket } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authStore, setAuthError } from "@/stores/auth";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 
 export const Route = createFileRoute("/login")({
 	component: LoginComponent,
@@ -15,6 +18,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginComponent() {
 	const context = useRouteContext({ from: "/login" });
+	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	const handleTwitchLogin = async () => {
 		try {
@@ -46,6 +50,13 @@ function LoginComponent() {
 		<div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
 			<div className="w-full max-w-sm">
 				<div className="flex flex-col gap-6">
+					<Alert>
+						<Rocket className="h-4 w-4" />
+						<AlertTitle>Versión {version}</AlertTitle>
+						<AlertDescription>
+							Sorteos funcionan de principio a fin, trabajando en hacer que funcione en celulares
+						</AlertDescription>
+					</Alert>
 					<Card>
 						<CardHeader className="text-center">
 							<CardTitle className="font-bold text-3xl text-primary">

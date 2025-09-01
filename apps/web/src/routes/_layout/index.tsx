@@ -4,6 +4,7 @@ import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import {
 	Conversation,
 	ConversationContent,
@@ -40,6 +41,7 @@ function RaffleComponent() {
 		uiStore,
 		(state) => state.isRaffleStateOpen,
 	);
+	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
 	const { isConnected, isConnecting, sessionId, subscriptionId } =
@@ -56,6 +58,16 @@ function RaffleComponent() {
 
 	return (
 		<>
+			{/* Version Badge - Fixed position */}
+			<div className="fixed bottom-4 right-4 z-50">
+				<Badge
+					variant="outline"
+					className="bg-background/80 backdrop-blur-sm text-xs text-muted-foreground border-muted-foreground/20 hover:bg-background/90 transition-colors"
+				>
+					{version}
+				</Badge>
+			</div>
+
 			{isRaffleStateOpen && (
 				<>
 					<div className="col-span-2 col-start-9 row-span-3 row-start-2">
