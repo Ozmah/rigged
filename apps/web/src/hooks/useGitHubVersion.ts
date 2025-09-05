@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useGitHubVersion(owner: string, repo: string) {
 	const [version, setVersion] = useState("v0.5.0.1"); // fallback
@@ -14,7 +14,7 @@ export function useGitHubVersion(owner: string, repo: string) {
 					const data = await response.json();
 					setVersion(data.tag_name);
 				}
-			} catch (error) {
+			} catch (_error) {
 				console.log("GitHub API not available, using fallback version");
 			} finally {
 				setIsLoading(false);

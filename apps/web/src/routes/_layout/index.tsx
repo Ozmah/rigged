@@ -4,7 +4,6 @@ import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
-import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import {
 	Conversation,
 	ConversationContent,
@@ -17,6 +16,7 @@ import { ShowRaffleState } from "@/components/show-raffle-state";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
 import { uiStore } from "@/stores/ui";
@@ -59,10 +59,10 @@ function RaffleComponent() {
 	return (
 		<>
 			{/* Version Badge - Fixed position */}
-			<div className="fixed bottom-4 right-4 z-50">
+			<div className="fixed right-4 bottom-4 z-50">
 				<Badge
 					variant="outline"
-					className="bg-background/80 backdrop-blur-sm text-xs text-muted-foreground border-muted-foreground/20 hover:bg-background/90 transition-colors"
+					className="border-muted-foreground/20 bg-background/80 text-muted-foreground text-xs backdrop-blur-sm transition-colors hover:bg-background/90"
 				>
 					{version}
 				</Badge>

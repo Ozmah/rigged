@@ -1,4 +1,6 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { Rocket } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -7,10 +9,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Rocket } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { authStore, setAuthError } from "@/stores/auth";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+import { authStore, setAuthError } from "@/stores/auth";
 
 export const Route = createFileRoute("/login")({
 	component: LoginComponent,
@@ -54,7 +54,8 @@ function LoginComponent() {
 						<Rocket className="h-4 w-4" />
 						<AlertTitle>Versión {version}</AlertTitle>
 						<AlertDescription>
-							Sorteos funcionan de principio a fin, trabajando en hacer que funcione en celulares
+							Sorteos funcionan de principio a fin, trabajando en
+							hacer que funcione en celulares
 						</AlertDescription>
 					</Alert>
 					<Card>
