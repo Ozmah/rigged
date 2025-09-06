@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import type { GitHubRelease } from "@/types/github-api";
 
 export function useGitHubVersion(owner: string, repo: string) {
-	const [version, setVersion] = useState("v0.5.0.1"); // fallback
+	// Need to remove this crap useState
+	const [version, setVersion] = useState("?");
+	const [description, setDescription] = useState("");
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
@@ -11,8 +14,9 @@ export function useGitHubVersion(owner: string, repo: string) {
 					`https://api.github.com/repos/${owner}/${repo}/releases/latest`,
 				);
 				if (response.ok) {
-					const data = await response.json();
+					const data: GitHubRelease = await response.json();
 					setVersion(data.tag_name);
+					setDescription(data.body);
 				}
 			} catch (_error) {
 				console.log("GitHub API not available, using fallback version");
@@ -24,5 +28,5 @@ export function useGitHubVersion(owner: string, repo: string) {
 		fetchVersion();
 	}, [owner, repo]);
 
-	return { version, isLoading };
+	return { version, description, isLoading };
 }

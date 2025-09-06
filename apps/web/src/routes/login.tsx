@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginComponent() {
 	const context = useRouteContext({ from: "/login" });
-	const { version } = useGitHubVersion("Ozmah", "rigged");
+	const { version, description } = useGitHubVersion("Ozmah", "rigged");
 
 	const handleTwitchLogin = async () => {
 		try {
@@ -53,10 +53,7 @@ function LoginComponent() {
 					<Alert>
 						<Rocket className="h-4 w-4" />
 						<AlertTitle>Versión {version}</AlertTitle>
-						<AlertDescription>
-							Sorteos funcionan de principio a fin, trabajando en
-							hacer que funcione en celulares
-						</AlertDescription>
+						<AlertDescription>{description}</AlertDescription>
 					</Alert>
 					<Card>
 						<CardHeader className="text-center">
