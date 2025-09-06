@@ -5,18 +5,6 @@ import { authStore } from "@/stores/auth";
 
 export const Route = createFileRoute("/_layout")({
 	beforeLoad: ({ location }) => {
-		// Temp till I get the mobile view working
-		const device = detectDevice();
-		console.log(device);
-		if (device.isMobile) {
-			throw redirect({
-				to: "/nope",
-				search: {
-					redirect: location.href,
-				},
-			});
-		}
-
 		if (!authStore.state.isAuthenticated) {
 			throw redirect({
 				to: "/login",

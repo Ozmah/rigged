@@ -1,6 +1,7 @@
 import { Store, Derived } from "@tanstack/store";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { updateUiState, uiStore } from "./ui";
 
 export const MAX_MESSAGES = 100;
@@ -865,6 +866,10 @@ export const raffleStateActions: RaffleStateActions = {
 		toast.success("🎲 Captura iniciada", {
 			description: `Capturando participantes con la palabra "${chatStore.state.raffleConfig.keyword}"`,
 			duration: 3000,
+			cancel: {
+				label: "X",
+				onClick: () => console.log('Temp close'),
+			}
 		});
 	},
 
@@ -893,10 +898,12 @@ export const raffleStateActions: RaffleStateActions = {
 			toast.success("🎉 ¡Felicidades!", {
 				description: `Ganador: ${winner.displayName}`,
 				duration: 8000,
+				closeButton: true
 			});
 		} else {
 			toast.error("❌ Hubo un problema con el sorteo", {
 				duration: 4000,
+				closeButton: true
 			});
 		}
 		return winner;
@@ -953,6 +960,7 @@ export const raffleStateActions: RaffleStateActions = {
 		toast.success("🎲 Generando Mensajes", {
 			description: "Creando mensajes para simular rifas",
 			duration: 3000,
+			closeButton: true
 		});
 	},
 
@@ -960,6 +968,7 @@ export const raffleStateActions: RaffleStateActions = {
 		stopTestMessageGeneration();
 		toast.success("🎲 Mensajes detenidos", {
 			duration: 3000,
+			closeButton: true
 		});
 	},
 
@@ -991,6 +1000,7 @@ export const raffleStateActions: RaffleStateActions = {
 		const raffleStatus = raffleWinners.length ? "Terminada" : "Cancelada";
 		toast.info(`⏹️ Rifa ${raffleStatus}`, {
 			duration: 3000,
+			closeButton: true
 		});
 	},
 

@@ -64,12 +64,14 @@ export function useTwitchEventSub() {
 				description:
 					"Conectado al chat de Twitch. ¡Los mensajes aparecerán en tiempo real!",
 				duration: 4000,
+				closeButton: true
 			});
 		} else {
 			setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
 			toast.info("📡 Chat desconectado", {
 				description: "Desconectado del chat de Twitch.",
 				duration: 3000,
+				closeButton: true
 			});
 		}
 	}, []);
@@ -119,6 +121,7 @@ export function useTwitchEventSub() {
 			toast.error("❌ Error de conexión", {
 				description: `Error al conectar con Twitch: ${errorMessage}. Máximos reintentos alcanzados.`,
 				duration: 8000,
+				closeButton: true
 			});
 		}
 	}, []);
@@ -207,6 +210,7 @@ export function useTwitchEventSub() {
 				description:
 					"Necesitas tu clave de cliente Twitch para que funcione",
 				duration: 8000,
+				closeButton: true
 			});
 			return;
 		}
