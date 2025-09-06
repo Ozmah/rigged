@@ -4,8 +4,7 @@ import {
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
-import { useId } from "react";
-import { toast } from "sonner";
+import { useId, useEffect } from "react";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { TooltipInfo } from "@/components/tooltip-info";
@@ -29,143 +28,90 @@ import { FloatingInput } from "@/components/ui/floating-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { TypographyH4 } from "@/components/ui/typography";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+
+// Clean imports - universal handler pattern
+import { handleRaffleAction } from "@/lib/raffleActionHandler";
+import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 import {
 	chatStore,
-	clearChatMessages,
-	clearParticipants,
-	executeRaffle,
-	resetRaffle,
-	rigTheRaffle,
-	startRaffleCapture,
-	startTestMessageGeneration,
-	stopRaffleCapture,
-	stopTestMessageGeneration,
-	updateRaffleConfig,
+	// Derived states
+	canStartRaffle,
+	hasWinners,
+	showDropdownMenu,
+	showCancelDialog,
+	hideRaffleControls,
+	microMenuSelected,
+	primaryButtonText,
+	primaryButtonVariant,
+	secondaryButtonText,
+	secondaryButtonDisabled,
+	isGeneratingMessages,
+	testMessagesButtonText,
+	testMessagesButtonVariant,
+	debugStateButtonText,
+	debugStateButtonVariant,
+	showSubsExtraTickets,
+	showVipsExtraTickets,
 } from "@/stores/chat";
-import { uiStore, updateUiState } from "@/stores/ui";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function SettingsPanel() {
 	const baseId = useId();
 	const participants = useStore(chatStore, (state) => state.participants);
 	const isCapturing = useStore(chatStore, (state) => state.isCapturing);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
-	const raffleWinners = useStore(chatStore, (state) => state.winners);
-	const isConnected = useStore(
-		chatStore,
-		(state) => state.connectionStatus === "connected",
-	);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
 
-	// UI State
-	const microMenuSelected = useStore(
-		uiStore,
-		(state) => state.microMenuSelected,
-	);
-	const showCancelDialog = useStore(
-		uiStore,
-		(state) => state.showCancelDialog,
-	);
-	const hideRaffleControls = useStore(
-		uiStore,
-		(state) => state.hideRaffleControls,
-	);
-	const isRaffleStateOpen = useStore(
-		uiStore,
-		(state) => state.isRaffleStateOpen,
-	);
-	const hasValidKeyword =
-		raffleConfig.keyword && raffleConfig.keyword.trim() !== "";
-	const canStartRaffle = isConnected && hasValidKeyword;
+	// Derived state
+	const canStartRaffleState = useStore(canStartRaffle);
+	const hasWinnersState = useStore(hasWinners);
+	const showDropdownMenuState = useStore(showDropdownMenu);
+	const showCancelDialogState = useStore(showCancelDialog);
+	const hideRaffleControlsState = useStore(hideRaffleControls);
+	const microMenuSelectedState = useStore(microMenuSelected);
+	const primaryButtonTextState = useStore(primaryButtonText);
+	const primaryButtonVariantState = useStore(primaryButtonVariant);
+	const secondaryButtonTextState = useStore(secondaryButtonText);
+	const secondaryButtonDisabledState = useStore(secondaryButtonDisabled);
+	const isGeneratingMessagesState = useStore(isGeneratingMessages);
+	const testMessagesButtonTextState = useStore(testMessagesButtonText);
+	const testMessagesButtonVariantState = useStore(testMessagesButtonVariant);
+	const debugStateButtonTextState = useStore(debugStateButtonText);
+	const debugStateButtonVariantState = useStore(debugStateButtonVariant);
+	const showSubsExtraTicketsState = useStore(showSubsExtraTickets);
+	const showVipsExtraTicketsState = useStore(showVipsExtraTickets);
 
-	// All these handles need to go to a single hook
-	// Need implementation for a debug mode
-	// const debugMode = useStore(authStore, (state) => state.debugMode);
-	// if (debugMode)
-	const handleAddTestMessages = () => {
-		startTestMessageGeneration();
-		toast.success("🎲 Generando Mensajes", {
-			description: "Creando mensajes para simular rifas",
-			duration: 3000,
-		});
-	};
+	// Mount all derived state
+	useEffect(() => {
+		const unsubscribers = [
+			canStartRaffle.mount(),
+			hasWinners.mount(),
+			showDropdownMenu.mount(),
+			showCancelDialog.mount(),
+			hideRaffleControls.mount(),
+			microMenuSelected.mount(),
+			primaryButtonText.mount(),
+			primaryButtonVariant.mount(),
+			secondaryButtonText.mount(),
+			secondaryButtonDisabled.mount(),
+			isGeneratingMessages.mount(),
+			testMessagesButtonText.mount(),
+			testMessagesButtonVariant.mount(),
+			debugStateButtonText.mount(),
+			debugStateButtonVariant.mount(),
+			showSubsExtraTickets.mount(),
+			showVipsExtraTickets.mount(),
+		];
 
-	const handleStopTestMessages = () => {
-		stopTestMessageGeneration();
-		toast.success("🎲 Mensajes detenidos", {
-			duration: 3000,
-		});
-	};
-
-	const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") {
-			handleStartCapture();
-		}
-	};
-
-	const handleCounter = (counterId: string, counter: number) => {
-		updateRaffleConfig({ [counterId]: counter });
-	};
-
-	const handleToggle = (switchId: string, checked: boolean) => {
-		updateRaffleConfig({ [switchId]: checked });
-	};
-
-	const handleStartCapture = () => {
-		updateUiState({ hideRaffleControls: true });
-		startRaffleCapture();
-		toast.success("🎲 Captura iniciada", {
-			description: `Capturando participantes con la palabra "${raffleConfig.keyword}"`,
-			duration: 3000,
-		});
-	};
-
-	const handleStopCapture = () => {
-		if (participants.length > 0) {
-			updateUiState({ showCancelDialog: true });
-		} else {
-			updateUiState({ hideRaffleControls: false });
-			stopRaffleCapture();
-			toast.info("⏹️ Rifa Cancelada", {
-				duration: 3000,
-			});
-		}
-	};
-
-	const handleRaffleFinalStep = () => {
-		const winner = executeRaffle();
-		console.log("Raffle winner:", winner);
-
-		if (winner) {
-			toast.success("🎉 ¡Felicidades!", {
-				description: `Ganador: ${winner.displayName}`,
-				duration: 8000,
-			});
-		} else {
-			toast.error("❌ Hubo un problema con el sorteo", {
-				duration: 4000,
-			});
-		}
-	};
-
-	const handleKeywordChange = (keyword: string) => {
-		updateRaffleConfig({ keyword });
-	};
-
-	// Debug Options
-	const handleShowRaffleState = () => {
-		updateUiState({ isRaffleStateOpen: !isRaffleStateOpen });
-	};
-
-	const isGeneratingMessages = useStore(
-		chatStore,
-		(state) => state.debug.isChatGenerating,
-	);
+		return () => {
+			unsubscribers.forEach((unsub) => unsub());
+		};
+	}, []);
 
 	return (
 		<>
-			<div className="@container flex flex-col justify-center space-y-4 rounded-lg px-4 py-4">
-				{microMenuSelected === "raffle" && (
+			<div className="@container flex flex-col bg-card justify-center space-y-4 rounded-lg px-4 py-4">
+				{microMenuSelectedState === "raffle" && (
 					<>
 						<section className="space-y-4">
 							<div className="space-y-4">
@@ -177,8 +123,22 @@ export function SettingsPanel() {
 										id={`${baseId}-keyword`}
 										label="Palabra clave"
 										value={raffleConfig.keyword}
-										onKeyUp={handleKeyUp}
-										onChange={handleKeywordChange}
+										onKeyUp={(
+											e: React.KeyboardEvent<HTMLInputElement>,
+										) => {
+											if (e.key === "Enter") {
+												handleRaffleAction(
+													createRaffleUiAction.keywordEnterPressed(),
+												);
+											}
+										}}
+										onChange={(keyword: string) => {
+											handleRaffleAction(
+												createRaffleUiAction.updateKeyword(
+													keyword,
+												),
+											);
+										}}
 										placeholder="Ej: puroprimo"
 										disabled={isCapturing || isRaffleRigged}
 									/>
@@ -186,94 +146,89 @@ export function SettingsPanel() {
 								<div className="space-y-4">
 									<div className="flex">
 										<Button
-											onClick={
-												isCapturing
-													? handleStopCapture
-													: isRaffleRigged
-														? handleStopCapture
-														: handleStartCapture
-											}
-											disabled={!canStartRaffle}
-											variant={
-												isCapturing
-													? "outline"
-													: isRaffleRigged
-														? "outline"
-														: "default"
-											}
-											className={`grow-1 font-bold ${isCapturing && participants.length > 0 && "rounded-r-none"}`}
+											onClick={() => {
+												if (
+													isCapturing ||
+													isRaffleRigged
+												) {
+													handleRaffleAction(
+														createRaffleUiAction.stopRaffle(),
+													);
+												} else {
+													handleRaffleAction(
+														createRaffleUiAction.startRaffle(),
+													);
+												}
+											}}
+											disabled={!canStartRaffleState}
+											variant={primaryButtonVariantState}
+											className={`grow-1 font-bold ${showDropdownMenuState && "rounded-r-none"}`}
 										>
-											{isCapturing
-												? "Cancelar Rifa"
-												: isRaffleRigged
-													? raffleWinners.length
-														? "Terminar Rifa"
-														: "Cancelar Rifa"
-													: "Iniciar Rifa"}
+											{primaryButtonTextState}
 										</Button>
-										{isCapturing &&
-											participants.length > 0 && (
-												<DropdownMenu>
-													<DropdownMenuTrigger
-														asChild
+										{showDropdownMenuState && (
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant="default"
+														size="icon"
+														className="fade-in slide-in-from-left-2 w-8 animate-in rounded-l-none border-l duration-200 ease-out"
 													>
-														<Button
-															variant="default"
-															size="icon"
-															className="fade-in slide-in-from-left-2 w-8 animate-in rounded-l-none border-l duration-200 ease-out"
-														>
-															<CaretDownIcon className="h-4 w-4" />
-														</Button>
-													</DropdownMenuTrigger>
-													<DropdownMenuContent align="end">
-														<DropdownMenuItem
-															onClick={() => {
-																clearParticipants();
-															}}
-														>
-															<EraserIcon className="h-4 w-4" />{" "}
-															¿Borrar
-															participantes?
-														</DropdownMenuItem>
-													</DropdownMenuContent>
-												</DropdownMenu>
-											)}
+														<CaretDownIcon className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem
+														onClick={() => {
+															handleRaffleAction(
+																createRaffleUiAction.clearParticipants(),
+															);
+														}}
+													>
+														<EraserIcon className="h-4 w-4" />{" "}
+														¿Borrar participantes?
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										)}
 									</div>
 									<div>
 										<Button
 											onClick={() => {
-												isRaffleRigged
-													? handleRaffleFinalStep()
-													: rigTheRaffle();
+												if (isRaffleRigged) {
+													handleRaffleAction(
+														createRaffleUiAction.executeRaffle(),
+													);
+												} else {
+													handleRaffleAction(
+														createRaffleUiAction.rigRaffle(),
+													);
+												}
 											}}
 											disabled={
-												(!isCapturing &&
-													!isRaffleRigged) ||
-												participants.length === 0
+												secondaryButtonDisabledState
 											}
 											variant="secondary"
 											className="w-full font-bold"
 										>
-											{participants.length > 0
-												? isRaffleRigged
-													? raffleWinners.length
-														? "¿Elegir otro ganador?"
-														: "¡Elegir un ganador!"
-													: "¡Siguiente paso!"
-												: "Sin participantes"}
+											{secondaryButtonTextState}
 										</Button>
 									</div>
 								</div>
 							</div>
 						</section>
-						<DisabledOverlay disabled={hideRaffleControls}>
+						<DisabledOverlay disabled={hideRaffleControlsState}>
 							<section className="py-4">
 								<div className="inline-flex space-x-3">
 									<Switch
 										checked={raffleConfig.advanced}
 										id={`${baseId}-advanced`}
 										onCheckedChange={(checked) =>
-											handleToggle("advanced", checked)
+											handleRaffleAction(
+												createRaffleUiAction.toggleAdvanced(
+													checked,
+												),
+											)
 										}
 									/>
 									<Label htmlFor="advanced">
@@ -299,9 +254,10 @@ export function SettingsPanel() {
 													onCheckedChange={(
 														checked,
 													) =>
-														handleToggle(
-															"ignoreMods",
-															checked,
+														handleRaffleAction(
+															createRaffleUiAction.toggleIgnoreMods(
+																checked,
+															),
 														)
 													}
 												/>
@@ -326,9 +282,10 @@ export function SettingsPanel() {
 													onCheckedChange={(
 														checked,
 													) =>
-														handleToggle(
-															"ignoreSubs",
-															checked,
+														handleRaffleAction(
+															createRaffleUiAction.toggleIgnoreSubs(
+																checked,
+															),
 														)
 													}
 												/>
@@ -353,9 +310,10 @@ export function SettingsPanel() {
 													onCheckedChange={(
 														checked,
 													) =>
-														handleToggle(
-															"ignoreVips",
-															checked,
+														handleRaffleAction(
+															createRaffleUiAction.toggleIgnoreVips(
+																checked,
+															),
 														)
 													}
 												/>
@@ -380,9 +338,10 @@ export function SettingsPanel() {
 													onCheckedChange={(
 														checked,
 													) =>
-														handleToggle(
-															"caseSensitive",
-															checked,
+														handleRaffleAction(
+															createRaffleUiAction.toggleCaseSensitive(
+																checked,
+															),
 														)
 													}
 												/>
@@ -414,9 +373,10 @@ export function SettingsPanel() {
 													onCheckedChange={(
 														checked,
 													) =>
-														handleToggle(
-															"removeWinners",
-															checked,
+														handleRaffleAction(
+															createRaffleUiAction.toggleRemoveWinners(
+																checked,
+															),
 														)
 													}
 												/>
@@ -428,37 +388,10 @@ export function SettingsPanel() {
 												</Label>
 												<TooltipInfo
 													icon="QuestionIcon"
-													// Change hardcoded value
 													size={16}
 													content="Los ganadores no vuelven a participar"
 												/>
 											</div>
-											{/* <div className="inline-flex space-x-3">
-												<Switch
-													checked={
-														raffleConfig.followersOnly
-													}
-													id={`${baseId}-followersOnly`}
-													onCheckedChange={(checked) =>
-														handleToggle(
-															"followersOnly",
-															checked,
-														)
-													}
-												/>
-												<Label
-													htmlFor="followersOnly"
-													className="flex-shrink-0 text-sm"
-												>
-													¿Sólo seguidores?
-												</Label>
-												<TooltipInfo
-													icon="QuestionIcon"
-													// Change hardcoded value
-													size={16}
-													content="Si no son seguidores, no participan"
-												/>
-											</div> */}
 											{!raffleConfig.ignoreSubs && (
 												<>
 													<div className="inline-flex space-x-3">
@@ -470,9 +403,10 @@ export function SettingsPanel() {
 															onCheckedChange={(
 																checked,
 															) =>
-																handleToggle(
-																	"subsExtraTickets",
-																	checked,
+																handleRaffleAction(
+																	createRaffleUiAction.toggleSubsExtraTickets(
+																		checked,
+																	),
 																)
 															}
 														/>
@@ -485,13 +419,12 @@ export function SettingsPanel() {
 														</Label>
 														<TooltipInfo
 															icon="QuestionIcon"
-															// Change hardcoded value
 															size={16}
 															content="Subs reciben más participaciones"
 														/>
 													</div>
 
-													{raffleConfig.subsExtraTickets && (
+													{showSubsExtraTicketsState && (
 														<div className="fade-in slide-in-from-top-2 animate-in duration-200 ease-out">
 															<Label className="my-1 text-foreground text-sm">
 																¿Cuántos boletos
@@ -505,12 +438,13 @@ export function SettingsPanel() {
 																	raffleConfig.subsExtraValue
 																}
 																onClick={(
-																	_e,
+																	_,
 																	counter,
 																) =>
-																	handleCounter(
-																		"subsExtraValue",
-																		counter,
+																	handleRaffleAction(
+																		createRaffleUiAction.updateSubsExtraValue(
+																			counter,
+																		),
 																	)
 																}
 															/>
@@ -529,9 +463,10 @@ export function SettingsPanel() {
 															onCheckedChange={(
 																checked,
 															) =>
-																handleToggle(
-																	"vipsExtraTickets",
-																	checked,
+																handleRaffleAction(
+																	createRaffleUiAction.toggleVipsExtraTickets(
+																		checked,
+																	),
 																)
 															}
 														/>
@@ -544,12 +479,11 @@ export function SettingsPanel() {
 														</Label>
 														<TooltipInfo
 															icon="QuestionIcon"
-															// Change hardcoded value
 															size={16}
 															content="VIPs reciben más participaciones"
 														/>
 													</div>
-													{raffleConfig.vipsExtraTickets && (
+													{showVipsExtraTicketsState && (
 														<div className="fade-in slide-in-from-top-2 animate-in duration-200 ease-out">
 															<Label className="my-1 text-foreground text-sm">
 																¿Cuántos boletos
@@ -563,12 +497,13 @@ export function SettingsPanel() {
 																	raffleConfig.vipsExtraValue
 																}
 																onClick={(
-																	_e,
+																	_,
 																	counter,
 																) =>
-																	handleCounter(
-																		"vipsExtraValue",
-																		counter,
+																	handleRaffleAction(
+																		createRaffleUiAction.updateVipsExtraValue(
+																			counter,
+																		),
 																	)
 																}
 															/>
@@ -583,9 +518,8 @@ export function SettingsPanel() {
 						</DisabledOverlay>
 					</>
 				)}
-				{microMenuSelected === "settings" && (
+				{microMenuSelectedState === "settings" && (
 					<>
-						{/* Some other settings */}
 						<section className="my-5 rounded-lg border bg-card">
 							<TypographyH4>
 								Todavía no tenemos nada aquí
@@ -593,50 +527,51 @@ export function SettingsPanel() {
 						</section>
 					</>
 				)}
-				{microMenuSelected === "dev" && (
+				{microMenuSelectedState === "dev" && (
 					<>
-						{/* Debug Tooling */}
 						<section className="my-5 space-y-4 rounded-lg bg-card">
 							<div>
 								<Button
 									id={`${baseId}-generateTestMessages`}
-									onClick={
-										isGeneratingMessages
-											? handleStopTestMessages
-											: handleAddTestMessages
-									}
-									variant={
-										isGeneratingMessages
-											? "secondary"
-											: "default"
-									}
+									onClick={() => {
+										if (isGeneratingMessagesState) {
+											handleRaffleAction(
+												createRaffleUiAction.stopTestMessages(),
+											);
+										} else {
+											handleRaffleAction(
+												createRaffleUiAction.startTestMessages(),
+											);
+										}
+									}}
+									variant={testMessagesButtonVariantState}
 									className="w-full font-bold"
 								>
-									{isGeneratingMessages
-										? "Detener"
-										: "Generar Mensajes"}
+									{testMessagesButtonTextState}
 								</Button>
 							</div>
 							<div>
 								<Button
 									id={`${baseId}-showState`}
-									onClick={handleShowRaffleState}
-									variant={
-										isRaffleStateOpen
-											? "secondary"
-											: "default"
-									}
+									onClick={() => {
+										handleRaffleAction(
+											createRaffleUiAction.toggleDebugState(),
+										);
+									}}
+									variant={debugStateButtonVariantState}
 									className="w-full font-bold"
 								>
-									{isRaffleStateOpen
-										? "Esconder Datos Dev"
-										: "Mostrar Datos Dev"}
+									{debugStateButtonTextState}
 								</Button>
 							</div>
 							<div>
 								<Button
 									id={`${baseId}-clearChat`}
-									onClick={clearChatMessages}
+									onClick={() => {
+										handleRaffleAction(
+											createRaffleUiAction.clearChatMessages(),
+										);
+									}}
 									variant={"default"}
 									className="w-full font-bold"
 								>
@@ -675,14 +610,22 @@ export function SettingsPanel() {
 			</div>
 			{/* AlertDialog for Raffle Cancellation */}
 			<AlertDialog
-				open={showCancelDialog}
-				onOpenChange={(isOpen) =>
-					updateUiState({ showCancelDialog: isOpen })
-				}
+				open={showCancelDialogState}
+				onOpenChange={(isOpen) => {
+					if (isOpen) {
+						handleRaffleAction(
+							createRaffleUiAction.openCancelDialog(),
+						);
+					} else {
+						handleRaffleAction(
+							createRaffleUiAction.closeCancelDialog(),
+						);
+					}
+				}}
 			>
 				<AlertDialogContent>
 					<AlertDialogTitle>
-						{raffleWinners.length
+						{hasWinnersState
 							? "¿Quieres terminar la rifa?"
 							: "¿Quieres cancelar la rifa?"}
 					</AlertDialogTitle>
@@ -694,18 +637,12 @@ export function SettingsPanel() {
 						<AlertDialogCancel>No, continuar</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
-								stopRaffleCapture();
-								resetRaffle();
-								updateUiState({ hideRaffleControls: false });
-								const raffleStatus = raffleWinners.length
-									? "Terminada"
-									: "Cancelada";
-								toast.info(`⏹️ Rifa ${raffleStatus}`, {
-									duration: 3000,
-								});
+								handleRaffleAction(
+									createRaffleUiAction.confirmCancelRaffle(),
+								);
 							}}
 						>
-							{raffleWinners.length
+							{hasWinnersState
 								? "Sí, terminar rifa"
 								: "Sí, cancelar rifa"}
 						</AlertDialogAction>
