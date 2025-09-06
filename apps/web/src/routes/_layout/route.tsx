@@ -5,18 +5,6 @@ import { authStore } from "@/stores/auth";
 
 export const Route = createFileRoute("/_layout")({
 	beforeLoad: ({ location }) => {
-		// Temp till I get the mobile view working
-		const device = detectDevice();
-		console.log(device);
-		if (device.isMobile) {
-			throw redirect({
-				to: "/nope",
-				search: {
-					redirect: location.href,
-				},
-			});
-		}
-
 		if (!authStore.state.isAuthenticated) {
 			throw redirect({
 				to: "/login",
@@ -31,7 +19,7 @@ export const Route = createFileRoute("/_layout")({
 
 function Layout() {
 	return (
-		<div className="grid h-screen grid-cols-1 grid-rows-[64px_repeat(7,minmax(10px,1fr))] gap-2 md:grid-cols-[repeat(10,minmax(10px,1fr))]">
+		<div className="grid h-screen grid-cols-1 grid-rows-[64px_repeat(7,minmax(10px,1fr))] gap-2 sm:grid-cols-[repeat(6,minmax(10px,1fr))] 2xl:grid-cols-[repeat(10,minmax(10px,1fr))]">
 			<Header />
 			<Outlet />
 		</div>

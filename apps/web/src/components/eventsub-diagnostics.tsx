@@ -127,12 +127,12 @@ export function EventSubDiagnostics({
 	};
 
 	return (
-		<div className={`col-span-20 bg-background ${className}`}>
+		<div className={`bg-background ${className}`}>
 			<div className="p-4">
 				<h3 className="mb-2 font-semibold text-muted-foreground text-sm">
 					Diagnóstico EventSub
 				</h3>
-				<pre className="max-h-200 overflow-auto rounded border border-slate-700 bg-slate-950 p-4 font-mono text-slate-300 text-xs">
+				<pre className="overflow-auto rounded border border-slate-700 bg-slate-950 p-4 font-mono text-slate-300 text-xs lg:max-h-[30dvh] 2xl:max-h-[40dvh]">
 					<code
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: Safe controlled JSON syntax highlighting for diagnostics
 						dangerouslySetInnerHTML={{

@@ -69,11 +69,11 @@ function LoginComponent() {
 						</CardHeader>
 						<CardContent>
 							<div className="flex flex-col gap-6">
-								<div className="space-y-2 text-center">
-									<h3 className="font-medium">
+								<div className="space-y-2">
+									<h3 className="text-center font-medium">
 										¿Qué puedes hacer?
 									</h3>
-									<ul className="space-y-1 text-muted-foreground text-sm">
+									<ul className="space-y-1 text-start text-muted-foreground text-sm">
 										<li>
 											• Sorteos en tiempo real con el chat
 										</li>
@@ -86,8 +86,14 @@ function LoginComponent() {
 											ocurrieron
 										</li>
 										<li>
-											• ¿Sugerencias? [Poner medio de
-											contacto]
+											• ¿Sugerencias?{" "}
+											<a
+												className="text-accent-foreground underline"
+												href="https://x.com/OzmahG"
+												target="blank"
+											>
+												Contáctame
+											</a>
 										</li>
 									</ul>
 								</div>

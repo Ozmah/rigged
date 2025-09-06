@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 import { authStore } from "@/stores/auth";
-import { addChatMessage, chatStore, setConnectionStatus } from "@/stores/chat";
+import { addChatMessage, chatStore, setConnectionStatus, CONNECTION_STATUS } from "@/stores/chat";
 
 const MAX_RETRIES = Number(import.meta.env.VITE_MAX_RETRIES) || 5;
 const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
@@ -59,17 +59,19 @@ export function useTwitchEventSub() {
 	 */
 	const handleConnectionChange = useCallback((connected: boolean) => {
 		if (connected) {
-			setConnectionStatus("connected");
+			setConnectionStatus(CONNECTION_STATUS.CONNECTED);
 			toast.success("🎮 Chat conectado", {
 				description:
 					"Conectado al chat de Twitch. ¡Los mensajes aparecerán en tiempo real!",
 				duration: 4000,
+				closeButton: true
 			});
 		} else {
-			setConnectionStatus("disconnected");
+			setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
 			toast.info("📡 Chat desconectado", {
 				description: "Desconectado del chat de Twitch.",
 				duration: 3000,
+				closeButton: true
 			});
 		}
 	}, []);
@@ -95,7 +97,7 @@ export function useTwitchEventSub() {
 				`🔄 Scheduling retry attempt ${retryCountRef.current}/${MAX_RETRIES} in ${retryDelay}ms`,
 			);
 			setConnectionStatus(
-				"error",
+				CONNECTION_STATUS.ERROR,
 				`${errorMessage} (retry ${retryCountRef.current}/${MAX_RETRIES} in ${retryDelay / 1000}s)`,
 			);
 
@@ -104,22 +106,22 @@ export function useTwitchEventSub() {
 					`🚀 Executing retry attempt ${retryCountRef.current} - setting status to disconnected`,
 				);
 				// Trigger reconnection by setting status to disconnected
-				setConnectionStatus("disconnected");
+				setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
 			}, retryDelay);
 		} else {
-			// Max retries reached - give up
 			console.error(
 				`❌ Max retries (${MAX_RETRIES}) reached. Giving up.`,
 			);
 			setConnectionStatus(
-				"error",
+				CONNECTION_STATUS.ERROR,
 				`${errorMessage} - Max retries reached`,
 			);
-			retryCountRef.current = 0; // Reset for future attempts
+			retryCountRef.current = 0;
 
 			toast.error("❌ Error de conexión", {
 				description: `Error al conectar con Twitch: ${errorMessage}. Máximos reintentos alcanzados.`,
 				duration: 8000,
+				closeButton: true
 			});
 		}
 	}, []);
@@ -169,8 +171,8 @@ export function useTwitchEventSub() {
 	}, [twitchAPI]);
 
 	/**
-	 * Cleanly disconnects from EventSub WebSocket and clears references
-	 * PATTERN: Like rigged2 - nullify the ref after disconnect
+	 * Disconnects from EventSub WebSocket and clears references
+	 * Nullify the ref after disconnect
 	 */
 	const disconnect = useCallback(() => {
 		if (twitchEventSubWebSocket) {
@@ -178,7 +180,7 @@ export function useTwitchEventSub() {
 		}
 
 		subscriptionIdRef.current = null;
-		setConnectionStatus("disconnected");
+		setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
 	}, [twitchEventSubWebSocket]);
 
 	/**
@@ -193,7 +195,7 @@ export function useTwitchEventSub() {
 		});
 
 		if (!isAuthenticated || !user || !accessToken) {
-			setConnectionStatus("error", "User not authenticated");
+			setConnectionStatus(CONNECTION_STATUS.ERROR, "User not authenticated");
 			return;
 		}
 
@@ -203,21 +205,22 @@ export function useTwitchEventSub() {
 
 		const clientId = import.meta.env.VITE_CLIENT_ID;
 		if (!clientId) {
-			setConnectionStatus("error", "VITE_CLIENT_ID not configured");
+			setConnectionStatus(CONNECTION_STATUS.ERROR, "VITE_CLIENT_ID not configured");
 			toast.error("⚙️ Configuración incorrecta", {
 				description:
 					"Necesitas tu clave de cliente Twitch para que funcione",
 				duration: 8000,
+				closeButton: true
 			});
 			return;
 		}
 
 		try {
-			setConnectionStatus("connecting");
+			setConnectionStatus(CONNECTION_STATUS.CONNECTING);
 
 			await twitchAPI.getCurrentUser();
 
-			// Create fresh TwitchEventSubWebSocket instance (like rigged2)
+			// Create fresh TwitchEventSubWebSocket
 			// eventSubRef.current = new TwitchEventSubWebSocket();
 			await twitchEventSubWebSocket.connect(
 				handleChatMessage,
@@ -237,7 +240,7 @@ export function useTwitchEventSub() {
 
 			if (subscriptionResponse.data.length > 0) {
 				subscriptionIdRef.current = subscriptionResponse.data[0].id;
-				setConnectionStatus("connected");
+				setConnectionStatus(CONNECTION_STATUS.CONNECTED);
 
 				// Reset retry count on successful connection
 				retryCountRef.current = 0;
@@ -254,7 +257,7 @@ export function useTwitchEventSub() {
 
 			disconnect();
 
-			// Use the retry logic instead of immediate error
+			// Retry logic
 			scheduleRetry(errorMessage);
 		}
 	}, [
@@ -278,7 +281,7 @@ export function useTwitchEventSub() {
 	 * Toggles connection state between connected and disconnected
 	 */
 	const toggle = useCallback(() => {
-		if (connectionStatus === "connected") {
+		if (connectionStatus === CONNECTION_STATUS.CONNECTED) {
 			disconnect();
 		} else {
 			connect();
@@ -299,14 +302,14 @@ export function useTwitchEventSub() {
 				isAuthenticated &&
 				user &&
 				accessToken &&
-				connectionStatus === "disconnected",
+				connectionStatus === CONNECTION_STATUS.DISCONNECTED,
 		});
 
 		if (
 			isAuthenticated &&
 			user &&
 			accessToken &&
-			connectionStatus === "disconnected"
+			connectionStatus === CONNECTION_STATUS.DISCONNECTED
 		) {
 			console.log("✅ Conditions met - calling connect()");
 			connect();
@@ -330,8 +333,8 @@ export function useTwitchEventSub() {
 	return {
 		// Connection status
 		connectionStatus,
-		isConnected: connectionStatus === "connected",
-		isConnecting: connectionStatus === "connecting",
+		isConnected: connectionStatus === CONNECTION_STATUS.CONNECTED,
+		isConnecting: connectionStatus === CONNECTION_STATUS.CONNECTING,
 
 		// Control functions
 		connect,

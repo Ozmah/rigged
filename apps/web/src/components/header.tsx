@@ -8,18 +8,20 @@ interface HeaderProps {
 
 export function Header({ className = "" }: HeaderProps) {
 	return (
-		<div className={`col-span-20 border-b bg-background ${className}`}>
+		<div
+			className={`col-span-full row-span-1 border-b bg-background ${className}`}
+		>
 			<div className="flex h-full items-center justify-between px-4">
 				{/* Logo section */}
 				<div className="flex items-center gap-2">
 					{/* Mobile: Solo icono */}
 					<div className="md:hidden">
-						<DiceThreeIcon className="h-6 w-6" />
+						<DiceThreeIcon className="h-10 w-10" />
 					</div>
 
 					{/* Desktop: Logo + texto */}
 					<div className="hidden items-center gap-2 md:flex">
-						<DiceThreeIcon className="h-6 w-6" />
+						<DiceThreeIcon className="h-10 w-10" />
 						<span className="font-bold text-lg">Rigged</span>
 					</div>
 				</div>

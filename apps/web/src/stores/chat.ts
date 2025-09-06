@@ -1,7 +1,11 @@
-import { Store } from "@tanstack/store";
+import { Store, Derived } from "@tanstack/store";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { updateUiState, uiStore } from "./ui";
 
 export const MAX_MESSAGES = 100;
+export const STATE_CONNECTION_STATUS_CONNECTED = "connected";
 
 const RAFFLE_OPTIONS_STORAGE_KEY = "rigged-raffle-options";
 
@@ -44,13 +48,16 @@ export interface RaffleParticipant {
 /**
  * Chat connection status
  */
-export type ConnectionStatus =
-	| "disconnected"
-	| "connecting"
-	| "connected"
-	| "error"
-	| "reconnecting";
+export const CONNECTION_STATUS = {
+	DISCONNECTED: "disconnected",
+	CONNECTING: "connecting",
+	CONNECTED: "connected",
+	ERROR: "error",
+	RECONNECTING: "reconnecting",
+} as const;
 
+export type ConnectionStatus =
+	(typeof CONNECTION_STATUS)[keyof typeof CONNECTION_STATUS];
 /**
  * Raffle configurations saved to Local Storage
  */
@@ -217,7 +224,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - isChatGenerating: false - Debug message generation is disabled by default
  */
 const initialState: ChatState = {
-	connectionStatus: "disconnected",
+	connectionStatus: CONNECTION_STATUS.DISCONNECTED,
 	connectionError: null,
 
 	messages: [],
@@ -799,3 +806,382 @@ export const getRaffleStats = () => {
 			: state.participants.length,
 	};
 };
+
+/* 	This is the first part of a refactor of all UI and State actions,
+	most of the logic has been abstracted and is based off of all these state "flags",
+	this allows us to expand and use any action in the sistem from anywhere without
+	prop drilling. Next part consist on bringing the heavy logic from the stand alone
+	functions such as executeRaffle into the raffleStateActions object, at the moment
+	the functions inside this object are already a part of the flow but they are basically
+	calling the legacy functions internally, the intent is to bring that and remove legacy
+	functions.
+*/
+export interface RaffleStateActions {
+	/*** Raffle Core Actions ***/
+	updateKeyword: (keyword: string) => void;
+	startRaffle: () => void;
+	stopRaffle: () => void;
+	rigRaffle: () => void;
+	executeRaffle: () => RaffleParticipant | null;
+	clearParticipants: () => void;
+
+	/*** Configuration Actions ***/
+	toggleAdvanced: (enabled: boolean) => void;
+	toggleIgnoreMods: (enabled: boolean) => void;
+	toggleIgnoreSubs: (enabled: boolean) => void;
+	toggleIgnoreVips: (enabled: boolean) => void;
+	toggleCaseSensitive: (enabled: boolean) => void;
+	toggleRemoveWinners: (enabled: boolean) => void;
+	toggleSubsExtraTickets: (enabled: boolean) => void;
+	toggleVipsExtraTickets: (enabled: boolean) => void;
+	updateSubsExtraValue: (value: number) => void;
+	updateVipsExtraValue: (value: number) => void;
+
+	/*** Dev Tools Actions ***/
+	startTestMessages: () => void;
+	stopTestMessages: () => void;
+	toggleDebugState: () => void;
+	clearChatMessages: () => void;
+
+	/*** UI State Actions ***/
+	openCancelDialog: () => void;
+	closeCancelDialog: () => void;
+	confirmCancelRaffle: () => void;
+	hideRaffleControls: () => void;
+	showRaffleControls: () => void;
+
+	/*** Keyboard Actions ***/
+	keywordEnterPressed: () => void;
+}
+
+export const raffleStateActions: RaffleStateActions = {
+	/*** Raffle Core Actions ***/
+	updateKeyword: (keyword: string) => {
+		updateRaffleConfig({ keyword });
+	},
+
+	startRaffle: () => {
+		updateUiState({ hideRaffleControls: true });
+		startRaffleCapture();
+		toast.success("🎲 Captura iniciada", {
+			description: `Capturando participantes con la palabra "${chatStore.state.raffleConfig.keyword}"`,
+			duration: 3000,
+			cancel: {
+				label: "X",
+				onClick: () => console.log('Temp close'),
+			}
+		});
+	},
+
+	stopRaffle: () => {
+		const participants = chatStore.state.participants;
+		if (participants.length > 0) {
+			updateUiState({ showCancelDialog: true });
+		} else {
+			updateUiState({ hideRaffleControls: false });
+			stopRaffleCapture();
+			toast.info("⏹️ Rifa Cancelada", {
+				duration: 3000,
+			});
+		}
+	},
+
+	rigRaffle: () => {
+		rigTheRaffle();
+	},
+
+	executeRaffle: () => {
+		const winner = executeRaffle();
+		console.log("Raffle winner:", winner);
+
+		if (winner) {
+			toast.success("🎉 ¡Felicidades!", {
+				description: `Ganador: ${winner.displayName}`,
+				duration: 8000,
+				closeButton: true
+			});
+		} else {
+			toast.error("❌ Hubo un problema con el sorteo", {
+				duration: 4000,
+				closeButton: true
+			});
+		}
+		return winner;
+	},
+
+	clearParticipants: () => {
+		clearParticipants();
+	},
+
+	/*** Configuration Actions ***/
+	toggleAdvanced: (enabled: boolean) => {
+		updateRaffleConfig({ advanced: enabled });
+	},
+
+	toggleIgnoreMods: (enabled: boolean) => {
+		updateRaffleConfig({ ignoreMods: enabled });
+	},
+
+	toggleIgnoreSubs: (enabled: boolean) => {
+		updateRaffleConfig({ ignoreSubs: enabled });
+	},
+
+	toggleIgnoreVips: (enabled: boolean) => {
+		updateRaffleConfig({ ignoreVips: enabled });
+	},
+
+	toggleCaseSensitive: (enabled: boolean) => {
+		updateRaffleConfig({ caseSensitive: enabled });
+	},
+
+	toggleRemoveWinners: (enabled: boolean) => {
+		updateRaffleConfig({ removeWinners: enabled });
+	},
+
+	toggleSubsExtraTickets: (enabled: boolean) => {
+		updateRaffleConfig({ subsExtraTickets: enabled });
+	},
+
+	toggleVipsExtraTickets: (enabled: boolean) => {
+		updateRaffleConfig({ vipsExtraTickets: enabled });
+	},
+
+	updateSubsExtraValue: (value: number) => {
+		updateRaffleConfig({ subsExtraValue: value });
+	},
+
+	updateVipsExtraValue: (value: number) => {
+		updateRaffleConfig({ vipsExtraValue: value });
+	},
+
+	/*** Dev Tools Actions ***/
+	startTestMessages: () => {
+		startTestMessageGeneration();
+		toast.success("🎲 Generando Mensajes", {
+			description: "Creando mensajes para simular rifas",
+			duration: 3000,
+			closeButton: true
+		});
+	},
+
+	stopTestMessages: () => {
+		stopTestMessageGeneration();
+		toast.success("🎲 Mensajes detenidos", {
+			duration: 3000,
+			closeButton: true
+		});
+	},
+
+	toggleDebugState: () => {
+		const currentState = chatStore.state;
+		updateUiState({
+			isRaffleStateOpen: !currentState.debug.isChatGenerating, // This should be a Derived state taken from UI Store
+		});
+	},
+
+	clearChatMessages: () => {
+		clearChatMessages();
+	},
+
+	/*** UI State Actions ***/
+	openCancelDialog: () => {
+		updateUiState({ showCancelDialog: true });
+	},
+
+	closeCancelDialog: () => {
+		updateUiState({ showCancelDialog: false });
+	},
+
+	confirmCancelRaffle: () => {
+		const raffleWinners = chatStore.state.winners;
+		stopRaffleCapture();
+		resetRaffle();
+		updateUiState({ hideRaffleControls: false });
+		const raffleStatus = raffleWinners.length ? "Terminada" : "Cancelada";
+		toast.info(`⏹️ Rifa ${raffleStatus}`, {
+			duration: 3000,
+			closeButton: true
+		});
+	},
+
+	hideRaffleControls: () => {
+		updateUiState({ hideRaffleControls: true });
+	},
+
+	showRaffleControls: () => {
+		updateUiState({ hideRaffleControls: false });
+	},
+
+	/*** Keyboard Actions ***/
+	keywordEnterPressed: () => {
+		// Use derived state instead of inline computation
+		if (canStartRaffle.state) {
+			raffleStateActions.startRaffle();
+		}
+	},
+};
+
+/**
+ * Derived state for computed values that depend on store state
+ * These replace the inline computations that were in the SettingsPanel component
+ */
+
+/*** Connection and validation ***/
+export const isConnected = new Derived({
+	fn: () => chatStore.state.connectionStatus === CONNECTION_STATUS.CONNECTED,
+	deps: [chatStore],
+});
+
+export const hasValidKeyword = new Derived({
+	fn: () => {
+		const keyword = chatStore.state.raffleConfig.keyword;
+		return keyword && keyword.trim() !== "";
+	},
+	deps: [chatStore],
+});
+
+export const canStartRaffle = new Derived({
+	fn: () => isConnected.state && hasValidKeyword.state,
+	deps: [isConnected, hasValidKeyword],
+});
+
+/*** Raffle state ***/
+export const isRaffleActive = new Derived({
+	fn: () => chatStore.state.isCapturing || chatStore.state.isRaffleRigged,
+	deps: [chatStore],
+});
+
+export const hasParticipants = new Derived({
+	fn: () => chatStore.state.participants.length > 0,
+	deps: [chatStore],
+});
+
+export const hasWinners = new Derived({
+	fn: () => chatStore.state.winners.length > 0,
+	deps: [chatStore],
+});
+
+/*** Advanced configuration ***/
+export const showSubsExtraTickets = new Derived({
+	fn: () => {
+		const config = chatStore.state.raffleConfig;
+		return !config.ignoreSubs && config.subsExtraTickets;
+	},
+	deps: [chatStore],
+});
+
+export const showVipsExtraTickets = new Derived({
+	fn: () => {
+		const config = chatStore.state.raffleConfig;
+		return !config.ignoreVips && config.vipsExtraTickets;
+	},
+	deps: [chatStore],
+});
+
+/*** Button state ***/
+export const primaryButtonText = new Derived({
+	fn: () => {
+		const state = chatStore.state;
+		if (state.isCapturing) return "Cancelar Rifa";
+		if (state.isRaffleRigged) {
+			return hasWinners.state ? "Terminar Rifa" : "Cancelar Rifa";
+		}
+		return "Iniciar Rifa";
+	},
+	deps: [chatStore, hasWinners],
+});
+
+export const primaryButtonVariant = new Derived({
+	fn: () => {
+		const state = chatStore.state;
+		return state.isCapturing || state.isRaffleRigged
+			? "outline"
+			: "default";
+	},
+	deps: [chatStore],
+});
+
+export const secondaryButtonText = new Derived({
+	fn: () => {
+		const participants = chatStore.state.participants.length;
+		const state = chatStore.state;
+
+		if (participants === 0) return "Sin participantes";
+		if (state.isRaffleRigged) {
+			return hasWinners.state
+				? "¿Elegir otro ganador?"
+				: "¡Elegir un ganador!";
+		}
+		return "¡Siguiente paso!";
+	},
+	deps: [chatStore, hasWinners],
+});
+
+export const secondaryButtonDisabled = new Derived({
+	fn: () => {
+		const state = chatStore.state;
+		return (
+			(!state.isCapturing && !state.isRaffleRigged) ||
+			state.participants.length === 0
+		);
+	},
+	deps: [chatStore],
+});
+
+// The following derived state is extremely redundant,
+// making uiStore basically boilerplate, I intent
+// to separate this monster of a store into smaller
+// pieces, so bear with me.
+
+/*** UI state (combining chat and ui stores) ***/
+export const showDropdownMenu = new Derived({
+	fn: () => chatStore.state.isCapturing && hasParticipants.state,
+	deps: [chatStore, hasParticipants],
+});
+
+export const showCancelDialog = new Derived({
+	fn: () => uiStore.state.showCancelDialog,
+	deps: [uiStore],
+});
+
+export const hideRaffleControls = new Derived({
+	fn: () => uiStore.state.hideRaffleControls,
+	deps: [uiStore],
+});
+
+export const isRaffleStateOpen = new Derived({
+	fn: () => uiStore.state.isRaffleStateOpen,
+	deps: [uiStore],
+});
+
+export const microMenuSelected = new Derived({
+	fn: () => uiStore.state.microMenuSelected,
+	deps: [uiStore],
+});
+
+/*** Dev tools ***/
+export const isGeneratingMessages = new Derived({
+	fn: () => chatStore.state.debug.isChatGenerating,
+	deps: [chatStore],
+});
+
+export const testMessagesButtonText = new Derived({
+	fn: () => (isGeneratingMessages.state ? "Detener" : "Generar Mensajes"),
+	deps: [isGeneratingMessages],
+});
+
+export const testMessagesButtonVariant = new Derived({
+	fn: () => (isGeneratingMessages.state ? "secondary" : "default"),
+	deps: [isGeneratingMessages],
+});
+
+export const debugStateButtonText = new Derived({
+	fn: () =>
+		isRaffleStateOpen.state ? "Esconder Datos Dev" : "Mostrar Datos Dev",
+	deps: [isRaffleStateOpen],
+});
+
+export const debugStateButtonVariant = new Derived({
+	fn: () => (isRaffleStateOpen.state ? "secondary" : "default"),
+	deps: [isRaffleStateOpen],
+});
