@@ -164,7 +164,7 @@ export function SettingsPanel() {
 
 	return (
 		<>
-			<div className="@container flex flex-col justify-center space-y-4 rounded-lg border bg-card px-4 py-4">
+			<div className="@container flex flex-col justify-center space-y-4 rounded-lg px-4 py-4">
 				{microMenuSelected === "raffle" && (
 					<>
 						<section className="space-y-4">
@@ -676,8 +676,8 @@ export function SettingsPanel() {
 			{/* AlertDialog for Raffle Cancellation */}
 			<AlertDialog
 				open={showCancelDialog}
-				onOpenChange={(open) =>
-					updateUiState({ showCancelDialog: open })
+				onOpenChange={(isOpen) =>
+					updateUiState({ showCancelDialog: isOpen })
 				}
 			>
 				<AlertDialogContent>

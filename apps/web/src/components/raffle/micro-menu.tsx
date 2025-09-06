@@ -21,27 +21,24 @@ export function MicroMenu({ className = "" }: MicroMenuProps) {
 
 	const handleMenuClick = (menuId: "raffle" | "settings" | "dev") => {
 		updateUiState({ microMenuSelected: menuId });
-		// uiStore.setState((state) => ({
-		// 	...state,
-		// 	microMenuSelected: menuId,
-		// }));
 	};
 
 	return (
-		<div className="flex h-full flex-col items-end justify-start gap-3">
-			<div className="flex h-40 w-14 flex-wrap items-center justify-center gap-1 rounded-lg bg-card py-2 transition-colors">
+		// <div className="flex sm:h-full sm:flex-col items-end justify-start gap-3">
+		<div className="flex h-20 gap-3 rounded-t-2xl border bg-card sm:h-full sm:flex-col sm:items-end sm:border-0 sm:bg-transparent">
+			{/* <div className="flex h-40 w-14 flex-wrap items-center justify-center gap-1 rounded-lg bg-card py-2 transition-colors"> */}
+			<div className="flex flex-1 items-center justify-between gap-1 px-8 sm:h-40 sm:w-14 sm:flex-none sm:flex-wrap sm:justify-center sm:rounded-lg sm:bg-card sm:px-0 sm:py-2">
 				{MENU_ITEMS.map(({ id, icon: Icon, label }) => (
 					<Button
 						key={id}
 						variant={
-							microMenuSelected === id ? "default" : "secondary"
+							microMenuSelected === id ? "default" : "ghost"
 						}
-						size="icon"
-						className={`size-10 ${className}`}
+						className={`${className} size-15 sm:size-10 rounded-full sm:rounded-md`}
 						onClick={() => handleMenuClick(id)}
 						title={label}
 					>
-						<Icon className="size-6" />
+						<Icon className="size-8 sm:size-6" />
 					</Button>
 				))}
 			</div>

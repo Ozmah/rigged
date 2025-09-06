@@ -4,6 +4,7 @@ import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
+import { detectDevice } from "@/lib/device-detection";
 import {
 	Conversation,
 	ConversationContent,
@@ -26,6 +27,8 @@ export const Route = createFileRoute("/_layout/")({
 });
 
 function RaffleComponent() {
+	// Device detection
+	const device = detectDevice();
 	// Chat state
 	const messages = useStore(chatStore, (state) => state.messages);
 	const participants = useStore(chatStore, (state) => state.participants);
@@ -59,7 +62,7 @@ function RaffleComponent() {
 	return (
 		<>
 			{/* Version Badge - Fixed position */}
-			<div className="fixed right-4 bottom-4 z-50">
+			<div className="fixed right-4 bottom-25 sm:bottom-4 z-50">
 				<Badge
 					variant="outline"
 					className="border-muted-foreground/20 bg-background/80 text-muted-foreground text-xs backdrop-blur-sm transition-colors hover:bg-background/90"
@@ -68,12 +71,13 @@ function RaffleComponent() {
 				</Badge>
 			</div>
 
+			{/* Dev Data */}
 			{isRaffleStateOpen && (
 				<>
-					<div className="col-span-2 col-start-9 row-span-3 row-start-2">
+					<div className="col-span-3 col-start-1 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-start-2">
 						<ShowRaffleState />
 					</div>
-					<div className="col-span-2 col-start-9 row-span-2 row-start-5">
+					<div className="col-span-3 col-start-4 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-span-2 2xl:row-start-5">
 						<EventSubDiagnostics
 							sessionId={sessionId}
 							subscriptionId={subscriptionId}
@@ -83,13 +87,13 @@ function RaffleComponent() {
 					</div>
 				</>
 			)}
-			<div className="col-start-2 row-span-5 row-start-2">
+			<div className="col-start-1 row-span-5 row-start-8 sm:row-start-2 2xl:col-start-2 self-end sm:self-auto">
 				<MicroMenu />
 			</div>
-			<div className="col-span-2 col-start-3 row-span-6 row-start-2">
+			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				<SettingsPanel />
 			</div>
-			<div className="col-span-4 col-start-5 row-span-5 row-start-2">
+			<div className="col-span-1 col-start-1 row-span-4 row-start-2 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
@@ -103,14 +107,16 @@ function RaffleComponent() {
 					<div className="relative">
 						<Conversation
 							contextRef={contextRef}
-							className="h-[calc((100vh-64px)*6/7)]"
+							className="h-[calc((80vh-32px)*6/7)] sm:h-[calc((60vh-64px)*6/7)] lg:h-[calc((60vh-64px)*6/7)] 2xl:h-[calc((100vh-64px)*6/7)]"
 						>
 							<ConversationContent>
+								{/* Floating element to show participants */}
 								{participants.length > 0 && (
 									<div className="-translate-x-1/2 absolute top-2 left-1/2 flex transform items-center justify-center rounded-lg border bg-card px-3 py-2 shadow">
 										{`Participantes de la rifa ${participants.length}`}
 									</div>
 								)}
+								{/* Floating element to show winners */}
 								{isRaffleRigged && raffleWinners.length && (
 									<motion.div
 										initial={{ scale: 0 }}
