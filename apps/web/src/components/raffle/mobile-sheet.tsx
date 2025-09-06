@@ -586,8 +586,9 @@ export function MobileSettingsSheet({
 								>
 									{testMessagesButtonTextState}
 								</Button>
-
-								<Button
+                                
+                                {/* TODO Button has a bug */}
+								{/* <Button
 									onClick={() => {
 										handleRaffleAction(
 											createRaffleUiAction.toggleDebugState(),
@@ -597,7 +598,7 @@ export function MobileSettingsSheet({
 									className="w-full"
 								>
 									{debugStateButtonTextState}
-								</Button>
+								</Button> */}
 
 								<Button
 									onClick={() => {
