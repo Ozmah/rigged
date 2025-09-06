@@ -551,7 +551,8 @@ export function SettingsPanel() {
 								</Button>
 							</div>
 							<div>
-								<Button
+								{/* TODO Button has a bug */}
+								{/* <Button
 									id={`${baseId}-showState`}
 									onClick={() => {
 										handleRaffleAction(
@@ -562,7 +563,7 @@ export function SettingsPanel() {
 									className="w-full font-bold"
 								>
 									{debugStateButtonTextState}
-								</Button>
+								</Button> */}
 							</div>
 							<div>
 								<Button
