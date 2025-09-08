@@ -1,4 +1,4 @@
-import { GiftIcon, SlidersIcon, TestTubeIcon } from "@phosphor-icons/react";
+import { FlaskIcon, GiftIcon, SlidersIcon } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
 import { Button } from "@/components/ui/button";
 import { uiStore, updateUiState } from "@/stores/ui";
@@ -10,7 +10,7 @@ interface MicroMenuProps {
 const MENU_ITEMS = [
 	{ id: "raffle" as const, icon: GiftIcon, label: "Raffle" },
 	{ id: "settings" as const, icon: SlidersIcon, label: "Settings" },
-	{ id: "dev" as const, icon: TestTubeIcon, label: "Dev Tools" },
+	{ id: "dev" as const, icon: FlaskIcon, label: "Dev Tools" },
 ];
 
 export function MicroMenu({ className = "" }: MicroMenuProps) {
@@ -31,10 +31,8 @@ export function MicroMenu({ className = "" }: MicroMenuProps) {
 				{MENU_ITEMS.map(({ id, icon: Icon, label }) => (
 					<Button
 						key={id}
-						variant={
-							microMenuSelected === id ? "default" : "ghost"
-						}
-						className={`${className} size-15 sm:size-10 rounded-full sm:rounded-md`}
+						variant={microMenuSelected === id ? "default" : "ghost"}
+						className={`${className} size-15 rounded-full sm:size-10 sm:rounded-md`}
 						onClick={() => handleMenuClick(id)}
 						title={label}
 					>

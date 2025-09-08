@@ -12,10 +12,10 @@ export function MicroMenuMobile({ className = "" }: MicroMenuMobileProps) {
 
 	return (
 		<>
-			<div className="fixed left-1/2 bottom-10 -translate-x-1/2 z-50">
+			<div className="-translate-x-1/2 fixed bottom-10 left-1/2 z-50">
 				<Button
 					variant="default"
-					className={`${className} size-20 sm:size-10 rounded-full sm:rounded-md shadow-lg`}
+					className={`${className} size-20 rounded-full shadow-lg sm:size-10 sm:rounded-md`}
 					onClick={() => setIsSheetOpen(true)}
 					title="Configuración de Rifa"
 				>

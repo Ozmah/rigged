@@ -4,7 +4,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 import { authStore } from "@/stores/auth";
-import { addChatMessage, chatStore, setConnectionStatus, CONNECTION_STATUS } from "@/stores/chat";
+import {
+	addChatMessage,
+	CONNECTION_STATUS,
+	chatStore,
+	setConnectionStatus,
+} from "@/stores/chat";
 
 const MAX_RETRIES = Number(import.meta.env.VITE_MAX_RETRIES) || 5;
 const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
@@ -64,14 +69,14 @@ export function useTwitchEventSub() {
 				description:
 					"Conectado al chat de Twitch. ¡Los mensajes aparecerán en tiempo real!",
 				duration: 4000,
-				closeButton: true
+				closeButton: true,
 			});
 		} else {
 			setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
 			toast.info("📡 Chat desconectado", {
 				description: "Desconectado del chat de Twitch.",
 				duration: 3000,
-				closeButton: true
+				closeButton: true,
 			});
 		}
 	}, []);
@@ -121,7 +126,7 @@ export function useTwitchEventSub() {
 			toast.error("❌ Error de conexión", {
 				description: `Error al conectar con Twitch: ${errorMessage}. Máximos reintentos alcanzados.`,
 				duration: 8000,
-				closeButton: true
+				closeButton: true,
 			});
 		}
 	}, []);
@@ -195,7 +200,10 @@ export function useTwitchEventSub() {
 		});
 
 		if (!isAuthenticated || !user || !accessToken) {
-			setConnectionStatus(CONNECTION_STATUS.ERROR, "User not authenticated");
+			setConnectionStatus(
+				CONNECTION_STATUS.ERROR,
+				"User not authenticated",
+			);
 			return;
 		}
 
@@ -205,12 +213,15 @@ export function useTwitchEventSub() {
 
 		const clientId = import.meta.env.VITE_CLIENT_ID;
 		if (!clientId) {
-			setConnectionStatus(CONNECTION_STATUS.ERROR, "VITE_CLIENT_ID not configured");
+			setConnectionStatus(
+				CONNECTION_STATUS.ERROR,
+				"VITE_CLIENT_ID not configured",
+			);
 			toast.error("⚙️ Configuración incorrecta", {
 				description:
 					"Necesitas tu clave de cliente Twitch para que funcione",
 				duration: 8000,
-				closeButton: true
+				closeButton: true,
 			});
 			return;
 		}

@@ -1,10 +1,9 @@
 import { TrophyIcon } from "@phosphor-icons/react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
-import { detectDevice } from "@/lib/device-detection";
 import {
 	Conversation,
 	ConversationContent,
@@ -20,6 +19,7 @@ import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
+import { detectDevice } from "@/lib/device-detection";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
 import { uiStore } from "@/stores/ui";
 
@@ -33,9 +33,11 @@ function RaffleComponent() {
 	// resizes the browser into a mobile resolution, we don't have
 	// anything reactive sensing if the device changed in real time.
 	// const router = useRouter();
-	// Device detection
+
+	// Device detection (This is a simple function,
+	// NOT reactive, user changes window size and we're screwed)
 	const device = detectDevice();
-		// Chat state
+	// Chat state
 	const messages = useStore(chatStore, (state) => state.messages);
 	const participants = useStore(chatStore, (state) => state.participants);
 	const connectionStatus = useStore(
@@ -73,7 +75,7 @@ function RaffleComponent() {
 
 	return (
 		<>
-			{/* Version Badge - Fixed position */}
+			{/* Version Badge */}
 			<div className="fixed right-4 bottom-4 z-50">
 				<Badge
 					variant="outline"
@@ -99,19 +101,13 @@ function RaffleComponent() {
 					</div>
 				</>
 			)}
-			<div className="col-start-1 row-span-5 row-start-8 sm:row-start-2 2xl:col-start-2 self-end sm:self-auto">
-				{device.isMobile ? (
-					<MicroMenuMobile />
-				) : (
-					<MicroMenu />
-				)}
+			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
+				{device.isMobile ? <MicroMenuMobile /> : <MicroMenu />}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
-				{!device.isMobile && (
-					<SettingsPanel />
-				)}
+				{!device.isMobile && <SettingsPanel />}
 			</div>
-			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:p-0 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">

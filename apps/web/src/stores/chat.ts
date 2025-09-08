@@ -1,8 +1,7 @@
-import { Store, Derived } from "@tanstack/store";
-import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+import { Derived, Store } from "@tanstack/store";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { updateUiState, uiStore } from "./ui";
+import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+import { uiStore, updateUiState } from "./ui";
 
 export const MAX_MESSAGES = 100;
 export const STATE_CONNECTION_STATUS_CONNECTED = "connected";
@@ -868,8 +867,8 @@ export const raffleStateActions: RaffleStateActions = {
 			duration: 3000,
 			cancel: {
 				label: "X",
-				onClick: () => console.log('Temp close'),
-			}
+				onClick: () => console.log("Temp close"),
+			},
 		});
 	},
 
@@ -898,12 +897,12 @@ export const raffleStateActions: RaffleStateActions = {
 			toast.success("🎉 ¡Felicidades!", {
 				description: `Ganador: ${winner.displayName}`,
 				duration: 8000,
-				closeButton: true
+				closeButton: true,
 			});
 		} else {
 			toast.error("❌ Hubo un problema con el sorteo", {
 				duration: 4000,
-				closeButton: true
+				closeButton: true,
 			});
 		}
 		return winner;
@@ -960,7 +959,7 @@ export const raffleStateActions: RaffleStateActions = {
 		toast.success("🎲 Generando Mensajes", {
 			description: "Creando mensajes para simular rifas",
 			duration: 3000,
-			closeButton: true
+			closeButton: true,
 		});
 	},
 
@@ -968,15 +967,12 @@ export const raffleStateActions: RaffleStateActions = {
 		stopTestMessageGeneration();
 		toast.success("🎲 Mensajes detenidos", {
 			duration: 3000,
-			closeButton: true
+			closeButton: true,
 		});
 	},
 
 	toggleDebugState: () => {
-		const currentState = chatStore.state;
-		updateUiState({
-			isRaffleStateOpen: !currentState.debug.isChatGenerating, // This should be a Derived state taken from UI Store
-		});
+		updateUiState({ isRaffleStateOpen: !isRaffleStateOpen.state });
 	},
 
 	clearChatMessages: () => {
@@ -1000,7 +996,7 @@ export const raffleStateActions: RaffleStateActions = {
 		const raffleStatus = raffleWinners.length ? "Terminada" : "Cancelada";
 		toast.info(`⏹️ Rifa ${raffleStatus}`, {
 			duration: 3000,
-			closeButton: true
+			closeButton: true,
 		});
 	},
 

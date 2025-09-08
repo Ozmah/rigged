@@ -1,6 +1,6 @@
-import { EraserIcon, WarningDiamondIcon } from "@phosphor-icons/react";
+import { EraserIcon } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
-import { useId, useEffect } from "react";
+import { useEffect, useId } from "react";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { TooltipInfo } from "@/components/tooltip-info";
@@ -25,27 +25,23 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { TypographyH4 } from "@/components/ui/typography";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
-import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 import {
-	chatStore,
 	canStartRaffle,
+	chatStore,
+	debugStateButtonText,
+	debugStateButtonVariant,
 	hasWinners,
-	showCancelDialog,
 	hideRaffleControls,
 	primaryButtonText,
 	primaryButtonVariant,
-	secondaryButtonText,
 	secondaryButtonDisabled,
-	isGeneratingMessages,
-	testMessagesButtonText,
-	testMessagesButtonVariant,
-	debugStateButtonText,
-	debugStateButtonVariant,
+	secondaryButtonText,
+	showCancelDialog,
 	showSubsExtraTickets,
 	showVipsExtraTickets,
 } from "@/stores/chat";
+import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 
 interface MobileSettingsSheetProps {
 	open: boolean;
@@ -63,7 +59,7 @@ export function MobileSettingsSheet({
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
 
-    // Derived state
+	// Derived state
 	const canStartRaffleState = useStore(canStartRaffle);
 	const hasWinnersState = useStore(hasWinners);
 	const showCancelDialogState = useStore(showCancelDialog);
@@ -72,15 +68,10 @@ export function MobileSettingsSheet({
 	const primaryButtonVariantState = useStore(primaryButtonVariant);
 	const secondaryButtonTextState = useStore(secondaryButtonText);
 	const secondaryButtonDisabledState = useStore(secondaryButtonDisabled);
-	const isGeneratingMessagesState = useStore(isGeneratingMessages);
-	const testMessagesButtonTextState = useStore(testMessagesButtonText);
-	const testMessagesButtonVariantState = useStore(testMessagesButtonVariant);
-	const debugStateButtonTextState = useStore(debugStateButtonText);
-	const debugStateButtonVariantState = useStore(debugStateButtonVariant);
 	const showSubsExtraTicketsState = useStore(showSubsExtraTickets);
 	const showVipsExtraTicketsState = useStore(showVipsExtraTickets);
 
-    // Mount all derived state
+	// Mount all derived state
 	useEffect(() => {
 		const unsubscribers = [
 			canStartRaffle.mount(),
@@ -91,9 +82,6 @@ export function MobileSettingsSheet({
 			primaryButtonVariant.mount(),
 			secondaryButtonText.mount(),
 			secondaryButtonDisabled.mount(),
-			isGeneratingMessages.mount(),
-			testMessagesButtonText.mount(),
-			testMessagesButtonVariant.mount(),
 			debugStateButtonText.mount(),
 			debugStateButtonVariant.mount(),
 			showSubsExtraTickets.mount(),
@@ -101,7 +89,9 @@ export function MobileSettingsSheet({
 		];
 
 		return () => {
-			unsubscribers.forEach((unsub) => unsub());
+			for (const unsub of unsubscribers) {
+				unsub();
+			}
 		};
 	}, []);
 
@@ -201,7 +191,7 @@ export function MobileSettingsSheet({
 										variant="outline"
 										className="w-full"
 									>
-										<EraserIcon className="h-4 w-4 mr-2" />
+										<EraserIcon className="mr-2 h-4 w-4" />
 										Borrar participantes
 									</Button>
 								)}
@@ -209,7 +199,7 @@ export function MobileSettingsSheet({
 						</section>
 
 						{/* Divider */}
-						<div className="border-t border-border" />
+						<div className="border-border border-t" />
 
 						{/* === ADVANCED OPTIONS SECTION === */}
 						<DisabledOverlay disabled={hideRaffleControlsState}>
@@ -228,14 +218,14 @@ export function MobileSettingsSheet({
 									/>
 									<Label
 										htmlFor={`${baseId}-advanced-mobile`}
-										className="text-base font-medium"
+										className="font-medium text-base"
 									>
 										Opciones avanzadas
 									</Label>
 								</div>
 
 								{raffleConfig.advanced && (
-									<div className="space-y-6 pl-4 border-l-2 border-muted">
+									<div className="space-y-6 border-muted border-l-2 pl-4">
 										{/* Message Filters */}
 										<div className="space-y-4">
 											<TypographyH4 className="text-sm">
@@ -443,8 +433,8 @@ export function MobileSettingsSheet({
 														</div>
 
 														{showSubsExtraTicketsState && (
-															<div className="pl-4 space-y-2">
-																<Label className="text-xs text-muted-foreground">
+															<div className="space-y-2 pl-4">
+																<Label className="text-muted-foreground text-xs">
 																	Boletos
 																	extra por
 																	sub
@@ -508,8 +498,8 @@ export function MobileSettingsSheet({
 														</div>
 
 														{showVipsExtraTicketsState && (
-															<div className="pl-4 space-y-2">
-																<Label className="text-xs text-muted-foreground">
+															<div className="space-y-2 pl-4">
+																<Label className="text-muted-foreground text-xs">
 																	Boletos
 																	extra por
 																	VIP
@@ -544,15 +534,15 @@ export function MobileSettingsSheet({
 						</DisabledOverlay>
 
 						{/* Divider */}
-						<div className="border-t border-border" />
+						<div className="border-border border-t" />
 
 						{/* === SETTINGS SECTION === */}
 						<section className="space-y-4">
 							<TypographyH4>
 								Configuraciones Generales
 							</TypographyH4>
-							<div className="p-4 rounded-lg border bg-muted/50">
-								<p className="text-sm text-muted-foreground">
+							<div className="rounded-lg border bg-muted/50 p-4">
+								<p className="text-muted-foreground text-sm">
 									Próximamente: Configuraciones adicionales de
 									la aplicación
 								</p>
@@ -560,10 +550,11 @@ export function MobileSettingsSheet({
 						</section>
 
 						{/* Divider */}
-						<div className="border-t border-border" />
+						<div className="border-border border-t" />
 
 						{/* === DEV TOOLS SECTION === */}
-						<section className="space-y-4">
+						{/* Considering removing dev tools from mobile version */}
+						{/* <section className="space-y-4">
 							<TypographyH4>
 								Herramientas de Desarrollo
 							</TypographyH4>
@@ -586,9 +577,8 @@ export function MobileSettingsSheet({
 								>
 									{testMessagesButtonTextState}
 								</Button>
-                                
-                                {/* TODO Button has a bug */}
-								{/* <Button
+
+								<Button
 									onClick={() => {
 										handleRaffleAction(
 											createRaffleUiAction.toggleDebugState(),
@@ -598,7 +588,7 @@ export function MobileSettingsSheet({
 									className="w-full"
 								>
 									{debugStateButtonTextState}
-								</Button> */}
+								</Button>
 
 								<Button
 									onClick={() => {
@@ -623,7 +613,7 @@ export function MobileSettingsSheet({
 											¡No los uses si no estás seguro!
 										</strong>
 									</p>
-									<ul className="list-disc list-inside text-xs space-y-1">
+									<ul className="list-inside list-disc space-y-1 text-xs">
 										<li>
 											Generar Mensajes crea mensajes
 											simulados que pueden participar en
@@ -636,7 +626,7 @@ export function MobileSettingsSheet({
 									</ul>
 								</AlertDescription>
 							</Alert>
-						</section>
+						</section> */}
 					</div>
 				</SheetContent>
 			</Sheet>

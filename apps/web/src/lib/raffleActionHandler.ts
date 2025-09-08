@@ -1,5 +1,5 @@
-import type { RaffleUiAction } from "@/types/raffle-ui-factory";
 import { raffleStateActions } from "@/stores/chat";
+import type { RaffleUiAction } from "@/types/raffle-ui-factory";
 
 /**
  * Central handler that connects UI actions to state actions
@@ -117,9 +117,11 @@ export const handleRaffleAction = (action: RaffleUiAction): void => {
 			break;
 
 		default: {
-			// TypeScript exhaustiveness check - ensures all actions are handled
 			const _exhaustiveCheck: never = action;
-			return _exhaustiveCheck;
+			// This is still a work in progress, still learning typescript so trying new stuff
+			throw new Error(
+				`Unhandled action: ${JSON.stringify(_exhaustiveCheck)}`,
+			);
 		}
 	}
 };

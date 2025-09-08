@@ -53,7 +53,7 @@ function RootComponent() {
 				storageKey="vite-ui-theme"
 			>
 				{isFetching ? <Loader /> : <Outlet />}
-				<Toaster position="top-center" richColors />
+				{/* <Toaster position="top-center" richColors /> */}
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
 		</>
