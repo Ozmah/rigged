@@ -107,7 +107,7 @@ function RaffleComponent() {
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && <SettingsPanel />}
 			</div>
-			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:p-0 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
