@@ -16,11 +16,13 @@ export interface uiState {
 const UI_STORAGE_KEY = "rigged-ui-state";
 
 /**
- * Persistible auth data (excludes transient states like loading/error)
+ * UI preferences to be stored in localStorage
  */
 interface PersistedUiState {
 	isMicroMenuOpen: boolean;
 	microMenuSelected: "raffle" | "settings" | "dev";
+	// Need a setting to disable the dam toast notifications, need to make less
+	// notifications and more meaningful, right now they're bullshit
 }
 
 /**
@@ -70,7 +72,7 @@ const initialState: uiState = {
 	hideRaffleControls: false,
 	isRaffleStateOpen: false,
 	error: null,
-	...loadPersistedUiState(), // Hydrate from localStorage
+	...loadPersistedUiState(),
 };
 
 export const uiStore = new Store<uiState>(initialState);
@@ -82,7 +84,6 @@ uiStore.subscribe(() => {
 });
 
 /**
- * Updates ui state
  * @param config New ui state to update
  */
 export const updateUiState = (config: Partial<uiState>) => {

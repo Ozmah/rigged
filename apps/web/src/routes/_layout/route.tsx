@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Header } from "@/components/header";
-import { detectDevice } from "@/lib/device-detection";
 import { authStore } from "@/stores/auth";
 
 export const Route = createFileRoute("/_layout")({

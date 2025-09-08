@@ -71,17 +71,27 @@ export interface GitHubReleaseBasic {
 	draft: boolean;
 }
 
-export function isGitHubRelease(obj: any): obj is GitHubRelease {
-	return (
-		obj &&
-		typeof obj.id === "number" &&
-		typeof obj.tag_name === "string" &&
-		typeof obj.name === "string" &&
-		typeof obj.html_url === "string" &&
-		Array.isArray(obj.assets) &&
-		obj.author &&
-		typeof obj.author.login === "string"
-	);
+export function isGitHubRelease(obj: unknown): obj is GitHubRelease {
+	if (!obj || typeof obj !== "object" || obj === null) {
+		return false;
+	}
+
+	const candidate = obj as Record<string, unknown>;
+
+	const hasBasicProps =
+		typeof candidate.id === "number" &&
+		typeof candidate.tag_name === "string" &&
+		typeof candidate.name === "string" &&
+		typeof candidate.html_url === "string" &&
+		Array.isArray(candidate.assets);
+
+	const hasValidAuthor =
+		candidate.author !== null &&
+		typeof candidate.author === "object" &&
+		candidate.author !== undefined &&
+		typeof (candidate.author as Record<string, unknown>).login === "string";
+
+	return hasBasicProps && hasValidAuthor;
 }
 
 export function extractVersionFromTag(tagName: string): string {

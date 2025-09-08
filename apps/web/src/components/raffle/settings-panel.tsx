@@ -4,7 +4,7 @@ import {
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
-import { useId, useEffect } from "react";
+import { useEffect, useId } from "react";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { TooltipInfo } from "@/components/tooltip-info";
@@ -28,32 +28,30 @@ import { FloatingInput } from "@/components/ui/floating-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { TypographyH4 } from "@/components/ui/typography";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-
-// Clean imports - universal handler pattern
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
-import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 import {
-	chatStore,
 	// Derived states
 	canStartRaffle,
+	chatStore,
+	debugStateButtonText,
+	debugStateButtonVariant,
 	hasWinners,
-	showDropdownMenu,
-	showCancelDialog,
 	hideRaffleControls,
+	isGeneratingMessages,
 	microMenuSelected,
 	primaryButtonText,
 	primaryButtonVariant,
-	secondaryButtonText,
 	secondaryButtonDisabled,
-	isGeneratingMessages,
-	testMessagesButtonText,
-	testMessagesButtonVariant,
-	debugStateButtonText,
-	debugStateButtonVariant,
+	secondaryButtonText,
+	showCancelDialog,
+	showDropdownMenu,
 	showSubsExtraTickets,
 	showVipsExtraTickets,
+	testMessagesButtonText,
+	testMessagesButtonVariant,
 } from "@/stores/chat";
+import { createRaffleUiAction } from "@/types/raffle-ui-factory";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 export function SettingsPanel() {
 	const baseId = useId();
@@ -104,13 +102,16 @@ export function SettingsPanel() {
 		];
 
 		return () => {
-			unsubscribers.forEach((unsub) => unsub());
+			for (const unsub of unsubscribers) {
+				unsub();
+			}
 		};
 	}, []);
 
 	return (
 		<>
-			<div className="@container flex flex-col bg-card justify-center space-y-4 rounded-lg px-4 py-4">
+			<div className="@container flex flex-col justify-center space-y-4 rounded-lg bg-card px-4 py-4">
+				{/* Main Raffle Controls */}
 				{microMenuSelectedState === "raffle" && (
 					<>
 						<section className="space-y-4">
@@ -118,6 +119,7 @@ export function SettingsPanel() {
 								<div className="">
 									<TypographyH4>Ajustes de Rifa</TypographyH4>
 								</div>
+								{/* Key Word */}
 								<div className="">
 									<FloatingInput
 										id={`${baseId}-keyword`}
@@ -143,6 +145,7 @@ export function SettingsPanel() {
 										disabled={isCapturing || isRaffleRigged}
 									/>
 								</div>
+								{/* Main Raffle Buttons */}
 								<div className="space-y-4">
 									<div className="flex">
 										<Button
@@ -217,6 +220,7 @@ export function SettingsPanel() {
 								</div>
 							</div>
 						</section>
+						{/* Overlay to disable advanced options */}
 						<DisabledOverlay disabled={hideRaffleControlsState}>
 							<section className="py-4">
 								<div className="inline-flex space-x-3">
@@ -236,6 +240,7 @@ export function SettingsPanel() {
 									</Label>
 								</div>
 							</section>
+							{/* Advanced Options */}
 							{raffleConfig.advanced && (
 								<section className="fade-in slide-in-from-top-2 animate-in space-y-4 duration-200 ease-out">
 									<div className="space-y-4">
@@ -519,94 +524,86 @@ export function SettingsPanel() {
 					</>
 				)}
 				{microMenuSelectedState === "settings" && (
-					<>
-						<section className="my-5 rounded-lg border bg-card">
-							<TypographyH4>
-								Todavía no tenemos nada aquí
-							</TypographyH4>
-						</section>
-					</>
+					<section className="my-5 rounded-lg border bg-card">
+						<TypographyH4>
+							Todavía no tenemos nada aquí
+						</TypographyH4>
+					</section>
 				)}
 				{microMenuSelectedState === "dev" && (
-					<>
-						<section className="my-5 space-y-4 rounded-lg bg-card">
-							<div>
-								<Button
-									id={`${baseId}-generateTestMessages`}
-									onClick={() => {
-										if (isGeneratingMessagesState) {
-											handleRaffleAction(
-												createRaffleUiAction.stopTestMessages(),
-											);
-										} else {
-											handleRaffleAction(
-												createRaffleUiAction.startTestMessages(),
-											);
-										}
-									}}
-									variant={testMessagesButtonVariantState}
-									className="w-full font-bold"
-								>
-									{testMessagesButtonTextState}
-								</Button>
-							</div>
-							<div>
-								{/* TODO Button has a bug */}
-								{/* <Button
-									id={`${baseId}-showState`}
-									onClick={() => {
+					<section className="my-5 space-y-4 rounded-lg bg-card">
+						<div>
+							<Button
+								id={`${baseId}-generateTestMessages`}
+								onClick={() => {
+									if (isGeneratingMessagesState) {
 										handleRaffleAction(
-											createRaffleUiAction.toggleDebugState(),
+											createRaffleUiAction.stopTestMessages(),
 										);
-									}}
-									variant={debugStateButtonVariantState}
-									className="w-full font-bold"
-								>
-									{debugStateButtonTextState}
-								</Button> */}
-							</div>
-							<div>
-								<Button
-									id={`${baseId}-clearChat`}
-									onClick={() => {
+									} else {
 										handleRaffleAction(
-											createRaffleUiAction.clearChatMessages(),
+											createRaffleUiAction.startTestMessages(),
 										);
-									}}
-									variant={"default"}
-									className="w-full font-bold"
-								>
-									Limpiar Chat
-								</Button>
-							</div>
-							<Alert variant="destructive">
-								<WarningDiamondIcon />
-								<AlertTitle>¡Cuidado!</AlertTitle>
-								<AlertDescription>
-									<p>
-										Estos botones pueden afectar la rifa{" "}
-										<strong>
-											{
-												"<<¡No los uses si no estas seguro!>>"
-											}
-										</strong>
-									</p>
-									<ul className="list-inside list-disc text-sm">
-										<li>
-											El boton de Generar Mensajes
-											comienza a generar mensajes
-											aleatorios simulados, pero pueden
-											ser considerados en la rifa.
-										</li>
-										<li>
-											El otro botón limpia el chat y esos
-											mensajes no se pueden recuperar
-										</li>
-									</ul>
-								</AlertDescription>
-							</Alert>
-						</section>
-					</>
+									}
+								}}
+								variant={testMessagesButtonVariantState}
+								className="w-full font-bold"
+							>
+								{testMessagesButtonTextState}
+							</Button>
+						</div>
+						<div>
+							<Button
+								id={`${baseId}-showState`}
+								onClick={() => {
+									handleRaffleAction(
+										createRaffleUiAction.toggleDebugState(),
+									);
+								}}
+								variant={debugStateButtonVariantState}
+								className="w-full font-bold"
+							>
+								{debugStateButtonTextState}
+							</Button>
+						</div>
+						<div>
+							<Button
+								id={`${baseId}-clearChat`}
+								onClick={() => {
+									handleRaffleAction(
+										createRaffleUiAction.clearChatMessages(),
+									);
+								}}
+								variant={"default"}
+								className="w-full font-bold"
+							>
+								Limpiar Chat
+							</Button>
+						</div>
+						<Alert variant="destructive">
+							<WarningDiamondIcon />
+							<AlertTitle>¡Cuidado!</AlertTitle>
+							<AlertDescription>
+								<p>
+									Estos botones pueden afectar la rifa{" "}
+									<strong>
+										{"<<¡No los uses si no estas seguro!>>"}
+									</strong>
+								</p>
+								<ul className="list-inside list-disc text-sm">
+									<li>
+										El boton de Generar Mensajes comienza a
+										generar mensajes aleatorios simulados,
+										pero pueden ser considerados en la rifa.
+									</li>
+									<li>
+										El otro botón limpia el chat y esos
+										mensajes no se pueden recuperar
+									</li>
+								</ul>
+							</AlertDescription>
+						</Alert>
+					</section>
 				)}
 			</div>
 			{/* AlertDialog for Raffle Cancellation */}
