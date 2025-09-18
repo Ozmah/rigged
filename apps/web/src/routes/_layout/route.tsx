@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Header } from "@/components/header";
 import { authStore } from "@/stores/auth";
+import { chatStore, setCurrentChannel } from "@/stores/chat";
 
 export const Route = createFileRoute("/_layout")({
 	beforeLoad: ({ location }) => {
@@ -10,6 +11,14 @@ export const Route = createFileRoute("/_layout")({
 				search: {
 					redirect: location.href,
 				},
+			});
+		}
+
+		if (!chatStore.state.currentChannel && authStore.state.user) {
+			setCurrentChannel({
+				id: authStore.state.user.id,
+				login: authStore.state.user.login,
+				name: authStore.state.user.display_name,
 			});
 		}
 	},

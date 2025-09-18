@@ -4,8 +4,6 @@ import {
 	type ModeratedChannelsResponse,
 	type TokenValidation,
 	TokenValidationSchema,
-	type TwitchChannel,
-	TwitchChannelSchema,
 	TwitchModeratedChannelsResponseSchema,
 	type TwitchUser,
 	TwitchUsersResponseSchema,

@@ -7,7 +7,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+// import { Toaster } from "@/components/ui/sonner";
 import type { TwitchAPI } from "@/lib/twitch-api-client";
 import type { TwitchEventSubWebSocket } from "@/lib/twitch-eventsub-client";
 import "../index.css";

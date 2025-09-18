@@ -1,6 +1,5 @@
 import { Store } from "@tanstack/store";
 import type { TwitchChannel, TwitchUser } from "@/lib/twitch-schemas";
-import { setCurrentChannel } from "./chat";
 
 /**
  * Persistible auth data (excludes transient states like loading/error)
@@ -134,13 +133,6 @@ export const setAuthSuccess = (
 		isLoading: false,
 		error: null,
 	}));
-
-	// Set current channel to user's own channel
-	setCurrentChannel({
-		id: user.id,
-		login: user.login,
-		name: user.display_name,
-	});
 };
 
 export const clearAuth = () => {

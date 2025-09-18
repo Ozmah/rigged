@@ -1,8 +1,8 @@
 import { toast } from "sonner";
+import type { SettingsPanelProps } from "@/components/raffle/settings-panel";
 import { resetChatState, setChannelSwitching } from "@/stores/chat";
 import { resetUIState } from "@/stores/ui";
 import type { TwitchAPI } from "./twitch-api-client";
-import type { SettingsPanelProps } from "@/components/raffle/settings-panel";
 
 /**
  * Switches to a different Twitch channel
@@ -20,16 +20,9 @@ export const switchToChannel = async (
 	});
 
 	try {
-		// 🚫 Block auto-connect during channel switch
 		setChannelSwitching(true);
-
-		console.log("📡 Disconnecting current EventSub...");
 		await props.eventSubHook.disconnect();
-
 		const prevSubscriptionId = props.eventSubHook.subscriptionId;
-
-		console.log("AFTER DISCONNECT");
-		console.log(props.eventSubHook);
 
 		if (prevSubscriptionId) {
 			console.log(
@@ -47,12 +40,10 @@ export const switchToChannel = async (
 			}
 		}
 
-		// 3️⃣ THEN: Reset app states (after disconnect to avoid auto-reconnect)
 		console.log("📝 Resetting app state...");
 		resetChatState();
 		resetUIState();
 
-		// 4️⃣ FINALLY: Connect to new channel
 		console.log("🎯 Connecting to new channel...");
 		await props.eventSubHook.connect(broadcasterId);
 
@@ -63,11 +54,8 @@ export const switchToChannel = async (
 		});
 
 		console.log("✅ Channel switch completed successfully");
-
-		// ✅ Re-enable auto-connect
 		setChannelSwitching(false);
 	} catch (error) {
-		// ✅ Re-enable auto-connect even on error
 		setChannelSwitching(false);
 		console.error("❌ Channel switch failed:", error);
 

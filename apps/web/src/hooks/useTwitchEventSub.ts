@@ -288,6 +288,7 @@ export function useTwitchEventSub() {
 		},
 		[
 			isAuthenticated,
+			connectionStatus,
 			user,
 			accessToken,
 			twitchAPI.createChatMessageSubscription,
@@ -348,6 +349,8 @@ export function useTwitchEventSub() {
 		accessToken,
 		connectionStatus,
 		isSwitchingChannel,
+		twitchEventSubWebSocket.isConnected,
+		connect,
 	]);
 
 	/**

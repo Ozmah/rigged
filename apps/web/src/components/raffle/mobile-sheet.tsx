@@ -3,7 +3,6 @@ import { useStore } from "@tanstack/react-store";
 import { useEffect, useId } from "react";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
-import { TooltipInfo } from "@/components/ui/tooltip-info";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -24,6 +23,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
+import { TooltipInfo } from "@/components/ui/tooltip-info";
 import { TypographyH4 } from "@/components/ui/typography";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
 import {

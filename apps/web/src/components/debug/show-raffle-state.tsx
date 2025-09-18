@@ -34,6 +34,7 @@ export function ShowRaffleState({ className = "" }: ShowRaffleStateProps) {
 	const stateForDisplay = {
 		connectionStatus: chatState.connectionStatus,
 		connectionError: chatState.connectionError,
+		currentChannel: chatState.currentChannel,
 		messagesCount: chatState.messages.length,
 		maxMessages: chatState.maxMessages,
 		raffleConfig: chatState.raffleConfig,

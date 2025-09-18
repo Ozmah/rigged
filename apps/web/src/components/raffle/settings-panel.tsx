@@ -9,7 +9,6 @@ import { useEffect, useId } from "react";
 import { toast } from "sonner";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
-import { TooltipInfo } from "@/components/ui/tooltip-info";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	AlertDialog,
@@ -39,9 +38,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { TypographyH4, TypographyLarge } from "@/components/ui/typography";
+import { TooltipInfo } from "@/components/ui/tooltip-info";
+import { TypographyH4 } from "@/components/ui/typography";
 import { switchToChannel } from "@/lib/channel-switcher";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
+import type { EventSubSubscriptionsResponse } from "@/lib/twitch-schemas";
 import { authStore } from "@/stores/auth";
 import {
 	// Derived states
@@ -57,6 +58,7 @@ import {
 	primaryButtonVariant,
 	secondaryButtonDisabled,
 	secondaryButtonText,
+	setCurrentChannel,
 	showCancelDialog,
 	showDropdownMenu,
 	showSubsExtraTickets,
@@ -74,7 +76,7 @@ export interface SettingsPanelProps {
 		connect: (broadcasterId?: string) => Promise<void>;
 		disconnect: () => Promise<void>;
 		toggle: () => void;
-		diagnoseSubscriptions: () => Promise<any>;
+		diagnoseSubscriptions: () => Promise<EventSubSubscriptionsResponse | null>;
 		sessionId: string | null;
 		subscriptionId: string | null;
 	};
@@ -153,6 +155,16 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 			return;
 		}
 
+		const channelFallback = chatStore.state.currentChannel;
+
+		if (authStore.state.user) {
+			setCurrentChannel({
+				id: selectedChannel.broadcaster_id,
+				login: selectedChannel.broadcaster_login,
+				name: selectedChannel.broadcaster_name,
+			});
+		}
+
 		try {
 			await switchToChannel(
 				broadcasterId,
@@ -162,7 +174,13 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 			);
 		} catch (error) {
 			console.error("❌ Error en cambio de canal:", error);
-			// El error ya se maneja dentro de switchToChannel con toast
+			if (channelFallback) {
+				setCurrentChannel({
+					id: channelFallback.id,
+					login: channelFallback.login,
+					name: channelFallback.name,
+				});
+			}
 		}
 	};
 
