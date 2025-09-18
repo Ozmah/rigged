@@ -92,6 +92,12 @@ export interface ChatState {
 	// Connection
 	connectionStatus: ConnectionStatus;
 	connectionError: string | null;
+	isSwitchingChannel: boolean;
+	currentChannel: {
+		id: string;
+		login: string;
+		name: string;
+	} | null;
 
 	// Chat messages
 	messages: ChatMessage[];
@@ -225,6 +231,8 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
 const initialState: ChatState = {
 	connectionStatus: CONNECTION_STATUS.DISCONNECTED,
 	connectionError: null,
+	isSwitchingChannel: false,
+	currentChannel: null,
 
 	messages: [],
 	maxMessages: MAX_MESSAGES,
@@ -804,6 +812,67 @@ export const getRaffleStats = () => {
 			? state.participants.filter((p) => !p.isWinner).length
 			: state.participants.length,
 	};
+};
+
+/**
+ * Resets chat state to initial values
+ * Preserves: raffleConfig (user preferences)
+ * Resets: messages, participants, winners, connection, stats
+ */
+export const resetChatState = () => {
+	chatStore.setState((state) => ({
+		...state,
+		messages: [],
+		participants: [],
+		winners: [],
+		isCapturing: false,
+		isRaffleRigged: false,
+		currentRound: 1,
+
+		connectionStatus: CONNECTION_STATUS.DISCONNECTED,
+		connectionError: null,
+
+		stats: {
+			totalMessages: 0,
+			uniqueParticipants: 0,
+			messagesPerMinute: 0,
+			captureStartTime: undefined,
+		},
+
+		debug: {
+			chatInterval: undefined,
+			isChatGenerating: false,
+		},
+
+		// Careful with the preserved state, this is a
+		// soft reset designed to preserve options and preferences
+	}));
+};
+
+/**
+ * Sets channel switching flag to prevent auto-connect during channel switch
+ */
+export const setChannelSwitching = (isSwitching: boolean) => {
+	chatStore.setState((state) => ({
+		...state,
+		isSwitchingChannel: isSwitching,
+	}));
+};
+
+/**
+ * Sets the current channel we're connected to
+ */
+export const setCurrentChannel = (
+	channel: {
+		id: string;
+		login: string;
+		name: string;
+	} | null,
+) => {
+	chatStore.setState((state) => ({
+		...state,
+		currentChannel: channel,
+	}));
 };
 
 /* 	This is the first part of a refactor of all UI and State actions,

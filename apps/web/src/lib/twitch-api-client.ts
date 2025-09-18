@@ -1,15 +1,15 @@
 import { authStore, clearAuth } from "@/stores/auth";
 import {
 	type ChattersResponse,
+	type ModeratedChannelsResponse,
 	type TokenValidation,
 	TokenValidationSchema,
+	type TwitchChannel,
+	TwitchChannelSchema,
+	TwitchModeratedChannelsResponseSchema,
 	type TwitchUser,
 	TwitchUsersResponseSchema,
 } from "./twitch-schemas";
-
-// ================================
-// 🔧 INTERFACES & TYPES
-// ================================
 
 export interface TwitchAPIConfig {
 	baseURL: string;
@@ -44,11 +44,11 @@ export interface AuthError {
 export const RIGGED_SCOPES = [
 	"user:read:chat",
 	"user:bot",
+	"user:read:moderated_channels",
 	"channel:bot",
 	"user:read:email",
 ] as const;
 
-// EventSub WebSocket message types
 export interface EventSubMessage {
 	metadata: {
 		message_id: string;
@@ -86,7 +86,6 @@ export interface EventSubMessage {
 	};
 }
 
-// EventSub chat message event
 export interface EventSubChatMessage {
 	broadcaster_user_id: string;
 	broadcaster_user_login: string;
@@ -145,10 +144,6 @@ export interface EventSubChatMessage {
 	channel_points_custom_reward_id?: string;
 }
 
-// ================================
-// 🎯 MAIN TWITCH API CLASS
-// ================================
-
 export class TwitchAPI {
 	private config: TwitchAPIConfig;
 
@@ -159,12 +154,8 @@ export class TwitchAPI {
 		};
 	}
 
-	// ================================
-	// 🔐 AUTH METHODS
-	// ================================
-
 	/**
-	 * Generates a Twitch OAuth authorization URL for implicit flow authentication
+	 * Generates a Twitch OAuth authorization URL
 	 */
 	createTwitchAuthUrl(params: AuthUrlParams): string {
 		const { clientId, redirectUri, scopes, state } = params;
@@ -185,6 +176,7 @@ export class TwitchAPI {
 	async validateTwitchToken(
 		accessToken: string,
 	): Promise<TokenValidation | false> {
+		// These AI console logs are going away when we hit beta
 		console.log("🌐 === VALIDATE TWITCH TOKEN EXECUTING ===");
 		console.log(
 			"🎫 Access token:",
@@ -555,6 +547,25 @@ export class TwitchAPI {
 		return validatedResponse.data[0];
 	}
 
+	async getModedChannels(userId: string): Promise<ModeratedChannelsResponse> {
+		// This is to bring 100 channels, we might need an implementation of "after"
+		// and a constant to make this 100 non magical
+		const params: Record<string, string> = {
+			user_id: userId,
+			first: "100",
+		};
+		const response = await this.request("/moderation/channels", params);
+		const validatedResponse =
+			TwitchModeratedChannelsResponseSchema.parse(response);
+
+		// This validation is not needed for the time being
+		// if (validatedResponse.data.length === 0) {
+		// 	throw new Error("User had no moded channels");
+		// }
+
+		return validatedResponse;
+	}
+
 	// ================================
 	// 💬 CHAT & EVENTSUB METHODS
 	// ================================
@@ -578,6 +589,8 @@ export class TwitchAPI {
 	/**
 	 * Gets all EventSub subscriptions for debugging
 	 */
+
+	// Need to make a type for this horrid thing
 	async getEventSubSubscriptions(): Promise<{
 		data: Array<{
 			id: string;

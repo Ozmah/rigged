@@ -99,3 +99,22 @@ export const setUiError = (error: string) => {
 		error,
 	}));
 };
+
+/**
+ * Resets transient UI state to initial values
+ * Preserves: isMicroMenuOpen, microMenuSelected
+ * Resets: dialogs, notifications, temporary states
+ */
+export const resetUIState = () => {
+	uiStore.setState((state) => ({
+		...state,
+		isBellOpen: false,
+		haveNotifications: false,
+		showCancelDialog: false,
+
+		hideRaffleControls: false,
+		isRaffleStateOpen: false,
+
+		error: null,
+	}));
+};

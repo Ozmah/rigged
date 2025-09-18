@@ -9,6 +9,7 @@ import {
 	authStore,
 	setAuthError,
 	setAuthLoading,
+	setAuthModedChannels,
 	setAuthSuccess,
 } from "@/stores/auth";
 
@@ -29,6 +30,13 @@ function AuthCallbackComponent() {
 				const result = await context.twitchAPI.handleAuthCallback();
 
 				setAuthSuccess(result.user, result.accessToken, result.state);
+
+				const modedChannels = await context.twitchAPI.getModedChannels(
+					result.user.id,
+				);
+
+				setAuthModedChannels(modedChannels.data);
+
 				navigate({
 					to: "/",
 				});

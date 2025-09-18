@@ -3,7 +3,7 @@ import { useStore } from "@tanstack/react-store";
 import { useEffect, useId } from "react";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
-import { TooltipInfo } from "@/components/tooltip-info";
+import { TooltipInfo } from "@/components/ui/tooltip-info";
 import {
 	AlertDialog,
 	AlertDialogAction,

@@ -409,19 +409,29 @@ export class TwitchEventSubWebSocket {
 	/**
 	 * Disconnects from EventSub WebSocket
 	 */
-	disconnect(): void {
-		if (this.keepaliveTimeoutId) {
-			clearTimeout(this.keepaliveTimeoutId);
-			this.keepaliveTimeoutId = null;
-		}
+	disconnect(): Promise<void> {
+		return new Promise((resolve) => {
+			if (this.keepaliveTimeoutId) {
+				clearTimeout(this.keepaliveTimeoutId);
+				this.keepaliveTimeoutId = null;
+			}
 
-		if (this.ws) {
-			this.ws.close(1000, "Client disconnect");
-			this.ws = null;
-		}
-
-		this.sessionId = null;
-		this.reconnectUrl = null;
+			if (this.ws) {
+				// Set up simple onclose handler just to resolve our promise
+				this.ws.onclose = () => {
+					this.ws = null;
+					this.sessionId = null;
+					this.reconnectUrl = null;
+					resolve();
+				};
+				this.ws.close(1000, "Client disconnect");
+			} else {
+				// If no WebSocket, resolve immediately
+				this.sessionId = null;
+				this.reconnectUrl = null;
+				resolve();
+			}
+		});
 	}
 
 	/**

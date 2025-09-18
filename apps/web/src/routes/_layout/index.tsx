@@ -55,8 +55,9 @@ function RaffleComponent() {
 	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
+	const eventSubHook = useTwitchEventSub();
 	const { isConnected, isConnecting, sessionId, subscriptionId } =
-		useTwitchEventSub();
+		eventSubHook;
 	const contextRef = useRef<StickToBottomContext>(null);
 
 	// This hook was created to handle the problem caused by the current message storing approach,
@@ -65,6 +66,7 @@ function RaffleComponent() {
 	// component automatic scroll behavior since we "push" the scroll a bit, so we check isAtBottom after
 	// 200 ms to ensure that we send the user to the bottom after the store has been updated with the latest
 	// message.
+	// This is expected to break with very active chats. More testing needed.
 	useEffect(() => {
 		if (messages.length >= MAX_MESSAGES && contextRef.current?.isAtBottom) {
 			setTimeout(() => {
@@ -105,9 +107,11 @@ function RaffleComponent() {
 				{device.isMobile ? <MicroMenuMobile /> : <MicroMenu />}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
-				{!device.isMobile && <SettingsPanel />}
+				{!device.isMobile && (
+					<SettingsPanel eventSubHook={eventSubHook} />
+				)}
 			</div>
-			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:p-0 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">

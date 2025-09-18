@@ -1,16 +1,6 @@
 import { Store } from "@tanstack/store";
-import type { TwitchUser } from "@/lib/twitch-schemas";
-
-export interface AuthState {
-	isAuthenticated: boolean;
-	user: TwitchUser | null;
-	accessToken: string | null;
-	userState: string | null;
-	isLoading: boolean;
-	error: string | null;
-}
-
-const AUTH_STORAGE_KEY = "rigged-auth-state";
+import type { TwitchChannel, TwitchUser } from "@/lib/twitch-schemas";
+import { setCurrentChannel } from "./chat";
 
 /**
  * Persistible auth data (excludes transient states like loading/error)
@@ -20,7 +10,15 @@ interface PersistedAuthState {
 	user: TwitchUser | null;
 	accessToken: string | null;
 	userState: string | null;
+	modedChannels?: TwitchChannel[];
 }
+
+export interface AuthState extends PersistedAuthState {
+	isLoading: boolean;
+	error: string | null;
+}
+
+const AUTH_STORAGE_KEY = "rigged-auth-state";
 
 /**
  * Load auth state from localStorage
@@ -44,6 +42,7 @@ const loadPersistedAuthState = (): Partial<AuthState> => {
 			user: parsed.user,
 			accessToken: parsed.accessToken,
 			userState: parsed.userState,
+			modedChannels: parsed.modedChannels,
 		};
 	} catch (error) {
 		console.warn("Failed to load persisted auth state:", error);
@@ -62,6 +61,7 @@ const saveAuthState = (state: AuthState): void => {
 			user: state.user,
 			accessToken: state.accessToken,
 			userState: state.userState,
+			modedChannels: state.modedChannels,
 		};
 
 		if (state.isAuthenticated && state.accessToken && state.user) {
@@ -84,6 +84,7 @@ const initialState: AuthState = {
 	user: null,
 	accessToken: null,
 	userState: null,
+	modedChannels: undefined,
 	isLoading: false,
 	error: null,
 	...loadPersistedAuthState(), // Hydrate from localStorage
@@ -102,6 +103,13 @@ export const setAuthLoading = (isLoading: boolean) => {
 		...state,
 		isLoading,
 		error: null,
+	}));
+};
+
+export const setAuthModedChannels = (modedChannels: TwitchChannel[]) => {
+	authStore.setState((state) => ({
+		...state,
+		modedChannels: modedChannels,
 	}));
 };
 
@@ -126,6 +134,13 @@ export const setAuthSuccess = (
 		isLoading: false,
 		error: null,
 	}));
+
+	// Set current channel to user's own channel
+	setCurrentChannel({
+		id: user.id,
+		login: user.login,
+		name: user.display_name,
+	});
 };
 
 export const clearAuth = () => {
@@ -141,6 +156,7 @@ export const clearAuth = () => {
 		user: null,
 		accessToken: null,
 		userState: null,
+		modedChannels: undefined,
 		isLoading: false,
 		error: null,
 	}));

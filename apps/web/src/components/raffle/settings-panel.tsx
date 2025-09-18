@@ -3,11 +3,14 @@ import {
 	EraserIcon,
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
+import { useRouteContext } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { useEffect, useId } from "react";
+import { toast } from "sonner";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
-import { TooltipInfo } from "@/components/tooltip-info";
+import { TooltipInfo } from "@/components/ui/tooltip-info";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -26,9 +29,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FloatingInput } from "@/components/ui/floating-input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { TypographyH4 } from "@/components/ui/typography";
+import { TypographyH4, TypographyLarge } from "@/components/ui/typography";
+import { switchToChannel } from "@/lib/channel-switcher";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
+import { authStore } from "@/stores/auth";
 import {
 	// Derived states
 	canStartRaffle,
@@ -51,14 +65,29 @@ import {
 	testMessagesButtonVariant,
 } from "@/stores/chat";
 import { createRaffleUiAction } from "@/types/raffle-ui-factory";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
-export function SettingsPanel() {
+export interface SettingsPanelProps {
+	eventSubHook: {
+		connectionStatus: string;
+		isConnected: boolean;
+		isConnecting: boolean;
+		connect: (broadcasterId?: string) => Promise<void>;
+		disconnect: () => Promise<void>;
+		toggle: () => void;
+		diagnoseSubscriptions: () => Promise<any>;
+		sessionId: string | null;
+		subscriptionId: string | null;
+	};
+}
+
+export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 	const baseId = useId();
+	const context = useRouteContext({ from: "__root__" });
 	const participants = useStore(chatStore, (state) => state.participants);
 	const isCapturing = useStore(chatStore, (state) => state.isCapturing);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
+	const modedChannels = useStore(authStore, (state) => state.modedChannels);
 
 	// Derived state
 	const canStartRaffleState = useStore(canStartRaffle);
@@ -107,6 +136,35 @@ export function SettingsPanel() {
 			}
 		};
 	}, []);
+
+	const handleChannelSwitch = async (broadcasterId: string) => {
+		console.log("🎯 Canal seleccionado:", broadcasterId);
+
+		const selectedChannel = modedChannels?.find(
+			(channel) => channel.broadcaster_id === broadcasterId,
+		);
+
+		if (!selectedChannel) {
+			console.error("❌ Canal no encontrado:", broadcasterId);
+			toast.error("❌ Error", {
+				description: "Canal no encontrado",
+				duration: 3000,
+			});
+			return;
+		}
+
+		try {
+			await switchToChannel(
+				broadcasterId,
+				selectedChannel.broadcaster_name,
+				{ eventSubHook },
+				context.twitchAPI,
+			);
+		} catch (error) {
+			console.error("❌ Error en cambio de canal:", error);
+			// El error ya se maneja dentro de switchToChannel con toast
+		}
+	};
 
 	return (
 		<>
@@ -524,10 +582,43 @@ export function SettingsPanel() {
 					</>
 				)}
 				{microMenuSelectedState === "settings" && (
-					<section className="my-5 rounded-lg border bg-card">
-						<TypographyH4>
-							Todavía no tenemos nada aquí
-						</TypographyH4>
+					<section className="space-y-4">
+						<div className="space-y-4">
+							<div>
+								<TypographyH4>
+									Configuraciones Generales
+								</TypographyH4>
+							</div>
+							{/* Key Word */}
+							<div>
+								{modedChannels && modedChannels.length > 0 && (
+									<Select onValueChange={handleChannelSwitch}>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Cambia de canal" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectLabel>
+													Canales que moderas
+												</SelectLabel>
+												{modedChannels.map((value) => (
+													<SelectItem
+														key={
+															value.broadcaster_id
+														}
+														value={
+															value.broadcaster_id
+														}
+													>
+														{value.broadcaster_name}
+													</SelectItem>
+												))}
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+								)}
+							</div>
+						</div>
 					</section>
 				)}
 				{microMenuSelectedState === "dev" && (

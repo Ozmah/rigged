@@ -53,3 +53,22 @@ export const ChattersResponseSchema = z.object({
 
 export type Chatter = z.infer<typeof ChatterSchema>;
 export type ChattersResponse = z.infer<typeof ChattersResponseSchema>;
+
+// Schema for /moderation/channels
+export const TwitchChannelSchema = z.object({
+	broadcaster_id: z.string(),
+	broadcaster_login: z.string(),
+	broadcaster_name: z.string(),
+});
+
+export const TwitchModeratedChannelsResponseSchema = z.object({
+	data: z.array(TwitchChannelSchema),
+	pagination: z.object({
+		cursor: z.string().optional(),
+	}),
+});
+
+export type TwitchChannel = z.infer<typeof TwitchChannelSchema>;
+export type ModeratedChannelsResponse = z.infer<
+	typeof TwitchModeratedChannelsResponseSchema
+>;
