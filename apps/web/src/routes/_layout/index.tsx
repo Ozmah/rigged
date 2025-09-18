@@ -9,11 +9,11 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { EventSubDiagnostics } from "@/components/eventsub-diagnostics";
+import { EventSubDiagnostics } from "@/components/debug/eventsub-diagnostics";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { MicroMenuMobile } from "@/components/raffle/micro-menu-mobile";
 import { SettingsPanel } from "@/components/raffle/settings-panel";
-import { ShowRaffleState } from "@/components/show-raffle-state";
+import { ShowRaffleState } from "@/components/debug/show-raffle-state";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
