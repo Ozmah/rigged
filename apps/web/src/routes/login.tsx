@@ -1,4 +1,8 @@
+// Hooks/Providers/Functional Components
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+
+// UI/Styles/UI Components
 import { Rocket } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -9,7 +13,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+
+// Libs
 import { authStore, setAuthError } from "@/stores/auth";
 
 export const Route = createFileRoute("/login")({

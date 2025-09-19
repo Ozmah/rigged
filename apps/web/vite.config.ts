@@ -4,9 +4,10 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { devtools } from '@tanstack/devtools-vite'
 
 export default defineConfig({
-	plugins: [tailwindcss(), tanstackRouter({}), react(), basicSsl()],
+	plugins: [tailwindcss(), tanstackRouter({}), react(), basicSsl(), devtools()],
 	server: {
 		host: "localhost",
 		port: 3001,

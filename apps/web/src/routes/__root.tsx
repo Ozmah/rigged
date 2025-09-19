@@ -1,3 +1,4 @@
+// Hooks/Providers/Functional Components
 import {
 	createRootRouteWithContext,
 	HeadContent,
@@ -5,12 +6,22 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import Loader from "@/components/loader";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ShowRaffleState } from "@/components/debug/show-raffle-state";
+import { EventSubDiagnostics } from "@/components/debug/eventsub-diagnostics";
+// UI/Styles/UI Components
+import "@/index.css";
+import Loader from "@/components/loader";
 // import { Toaster } from "@/components/ui/sonner";
+
+// Types
+
+// Libs
 import type { TwitchAPI } from "@/lib/twitch-api-client";
 import type { TwitchEventSubWebSocket } from "@/lib/twitch-eventsub-client";
-import "../index.css";
+
+
+import { TanStackDevtools } from '@tanstack/react-devtools'
 
 export interface RouterAppContext {
 	twitchAPI: TwitchAPI;
@@ -55,7 +66,21 @@ function RootComponent() {
 				{isFetching ? <Loader /> : <Outlet />}
 				{/* <Toaster position="top-center" richColors /> */}
 			</ThemeProvider>
-			<TanStackRouterDevtools position="bottom-left" />
+			
+			<TanStackDevtools plugins={[
+				{
+					name: 'TanStack Router',
+					render: <TanStackRouterDevtools />,
+				},
+				{
+					name: 'Raffle State',
+					render: <ShowRaffleState />,
+				},
+				// {
+				// 	name: 'EventSub State',
+				// 	render: <EventSubDiagnostics />,
+				// },
+			]} />
 		</>
 	);
 }

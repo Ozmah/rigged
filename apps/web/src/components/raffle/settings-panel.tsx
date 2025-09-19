@@ -1,12 +1,15 @@
+// Hooks/Providers/Functional Components
+import { useRouteContext } from "@tanstack/react-router";
+import { useStore } from "@tanstack/react-store";
+import { useEffect, useId } from "react";
+
+// UI/Styles/UI Components
+import { toast } from "sonner";
 import {
 	CaretDownIcon,
 	EraserIcon,
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
-import { useRouteContext } from "@tanstack/react-router";
-import { useStore } from "@tanstack/react-store";
-import { useEffect, useId } from "react";
-import { toast } from "sonner";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,12 +43,16 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { TooltipInfo } from "@/components/ui/tooltip-info";
 import { TypographyH4 } from "@/components/ui/typography";
+
+// Types
+import type { EventSubSubscriptionsResponse } from "@/lib/twitch-schemas";
+import { createRaffleUiAction } from "@/types/raffle-ui-factory";
+
+// Libs
 import { switchToChannel } from "@/lib/channel-switcher";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
-import type { EventSubSubscriptionsResponse } from "@/lib/twitch-schemas";
 import { authStore } from "@/stores/auth";
 import {
-	// Derived states
 	canStartRaffle,
 	chatStore,
 	debugStateButtonText,
@@ -66,7 +73,6 @@ import {
 	testMessagesButtonText,
 	testMessagesButtonVariant,
 } from "@/stores/chat";
-import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 
 export interface SettingsPanelProps {
 	eventSubHook: {

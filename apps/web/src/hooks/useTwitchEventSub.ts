@@ -1,8 +1,15 @@
+// Hooks/Providers/Functional Components
 import { useRouteContext } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { useCallback, useEffect, useRef } from "react";
+
+// UI/Styles/UI Components
 import { toast } from "sonner";
+
+// Types
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+
+// Libs
 import { authStore } from "@/stores/auth";
 import {
 	addChatMessage,

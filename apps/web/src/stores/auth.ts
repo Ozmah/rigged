@@ -86,7 +86,7 @@ const initialState: AuthState = {
 	modedChannels: undefined,
 	isLoading: false,
 	error: null,
-	...loadPersistedAuthState(), // Hydrate from localStorage
+	...loadPersistedAuthState(),
 };
 
 export const authStore = new Store<AuthState>(initialState);

@@ -1,10 +1,10 @@
 {
 	"name": "rigged",
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.0"
+	},
+	"packageManager": "bun@1.2.15",
 	"private": true,
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
 	"scripts": {
 		"check": "biome check --write apps/web/",
 		"lint": "biome lint apps/web/ --max-diagnostics=50",
@@ -17,9 +17,8 @@
 		"dev:web": "bun run --filter web dev",
 		"dev:server": "bun run --filter server dev"
 	},
-	"dependencies": {},
-	"devDependencies": {
-		"@biomejs/biome": "^2.2.0"
-	},
-	"packageManager": "bun@1.2.15"
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	]
 }

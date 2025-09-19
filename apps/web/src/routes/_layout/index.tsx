@@ -1,9 +1,13 @@
-import { TrophyIcon } from "@phosphor-icons/react";
+// Hooks/Providers/Functional Components
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
-import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
-import type { StickToBottomContext } from "use-stick-to-bottom";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
+
+// UI/Styles/UI Components
+import { TrophyIcon } from "@phosphor-icons/react";
+import { motion } from "motion/react";
 import {
 	Conversation,
 	ConversationContent,
@@ -17,8 +21,11 @@ import { SettingsPanel } from "@/components/raffle/settings-panel";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
-import { useGitHubVersion } from "@/hooks/useGitHubVersion";
-import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
+
+// Types
+import type { StickToBottomContext } from "use-stick-to-bottom";
+
+// Libs
 import { detectDevice } from "@/lib/device-detection";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
 import { uiStore } from "@/stores/ui";
