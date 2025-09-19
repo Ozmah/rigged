@@ -1,8 +1,6 @@
 // Framework Specific/Hooks/Providers/Functional Components
 import { useStore } from "@tanstack/react-store";
 import { useEffect } from "react";
-import { DevSettingsPanel } from "@/components/raffle/panels/dev-settings-panel";
-import { RafflePanel } from "@/components/raffle/panels/raffle-panel";
 // UI/Styles/UI Components
 import {
 	AlertDialog,
@@ -13,54 +11,39 @@ import {
 	AlertDialogFooter,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
+import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
 // Libs
 import { handleRaffleAction } from "@/lib/raffle-action-handler";
 // Types/Store State
 import {
-	canStartRaffle,
 	chatStore,
 	hasWinners,
-	hideRaffleControls,
-	primaryButtonText,
-	primaryButtonVariant,
-	secondaryButtonDisabled,
-	secondaryButtonText,
+	microMenuSelected,
 	showCancelDialog,
-	showSubsExtraTickets,
-	showVipsExtraTickets,
 } from "@/stores/chat";
 import { createRaffleUiAction } from "@/types/raffle-ui-factory";
+import { ChatSettingsPanel } from "./panels/chat-settings-panel";
+import { DevSettingsPanel } from "./panels/dev-settings-panel";
+import { RafflePanel } from "./panels/raffle-panel";
 
-interface MobileSettingsSheetProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
+export interface RiggedSettingsProps {
+	eventSubHook: TwitchEventSubHookConstructor;
 }
 
-export function MobileSettingsSheet({
-	open,
-	onOpenChange,
-}: MobileSettingsSheetProps) {
+export function RiggedSettings({ eventSubHook }: RiggedSettingsProps) {
 	const participants = useStore(chatStore, (state) => state.participants);
 
 	// Derived state
 	const hasWinnersState = useStore(hasWinners);
 	const showCancelDialogState = useStore(showCancelDialog);
+	const microMenuSelectedState = useStore(microMenuSelected);
 
 	// Mount all derived state
 	useEffect(() => {
 		const unsubscribers = [
-			canStartRaffle.mount(),
 			hasWinners.mount(),
 			showCancelDialog.mount(),
-			hideRaffleControls.mount(),
-			primaryButtonText.mount(),
-			primaryButtonVariant.mount(),
-			secondaryButtonText.mount(),
-			secondaryButtonDisabled.mount(),
-			showSubsExtraTickets.mount(),
-			showVipsExtraTickets.mount(),
+			microMenuSelected.mount(),
 		];
 
 		return () => {
@@ -72,22 +55,14 @@ export function MobileSettingsSheet({
 
 	return (
 		<>
-			<Sheet open={open} onOpenChange={onOpenChange}>
-				<SheetContent className="w-full overflow-y-auto p-4 pt-10">
-					<TypographyH4>Ajustes de la Rifa</TypographyH4>
-					<TypographyMuted>
-						Controla todos los aspectos de tu rifa desde aquí
-					</TypographyMuted>
-					<div className="space-y-6 py-4">
-						{/* Raffle Panel */}
-						<RafflePanel />
-						<div className="border-border border-t" />
-						{/* Dev Settings Panel */}
-						<DevSettingsPanel />
-						<div className="border-border border-t" />
-					</div>
-				</SheetContent>
-			</Sheet>
+			<div className="@container flex flex-col justify-center space-y-4 rounded-lg bg-card px-4 py-4">
+				{/* Main Raffle Controls */}
+				{microMenuSelectedState === "raffle" && <RafflePanel />}
+				{microMenuSelectedState === "settings" && (
+					<ChatSettingsPanel eventSubHook={eventSubHook} />
+				)}
+				{microMenuSelectedState === "dev" && <DevSettingsPanel />}
+			</div>
 			{/* AlertDialog for Raffle Cancellation */}
 			<AlertDialog
 				open={showCancelDialogState}

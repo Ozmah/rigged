@@ -8,9 +8,9 @@ interface MicroMenuProps {
 }
 
 const MENU_ITEMS = [
-	{ id: "raffle" as const, icon: GiftIcon, label: "Raffle" },
-	{ id: "settings" as const, icon: SlidersIcon, label: "Settings" },
-	{ id: "dev" as const, icon: FlaskIcon, label: "Dev Tools" },
+	{ id: "raffle" as const, icon: GiftIcon, label: "Rifa" },
+	{ id: "settings" as const, icon: SlidersIcon, label: "Opciones del Chat" },
+	{ id: "dev" as const, icon: FlaskIcon, label: "Herramientas Dev" },
 ];
 
 export function MicroMenu({ className = "" }: MicroMenuProps) {

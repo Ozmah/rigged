@@ -6,20 +6,50 @@ import { useCallback, useEffect, useRef } from "react";
 // UI/Styles/UI Components
 import { toast } from "sonner";
 
-// Types
+// Types/Store State
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
-
-// Libs
 import { authStore } from "@/stores/auth";
 import {
 	addChatMessage,
 	CONNECTION_STATUS,
+	type ConnectionStatus,
 	chatStore,
 	setConnectionStatus,
 } from "@/stores/chat";
 
 const MAX_RETRIES = Number(import.meta.env.VITE_MAX_RETRIES) || 5;
 const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
+
+export type TwitchEventSubHookConstructor = {
+	connectionStatus: ConnectionStatus;
+	isConnected: boolean;
+	isConnecting: boolean;
+	connect: (broadcasterId?: string) => Promise<void>;
+	disconnect: () => Promise<void>;
+	toggle: () => void;
+	diagnoseSubscriptions: () => Promise<{
+		data: Array<{
+			id: string;
+			status: string;
+			type: string;
+			version: string;
+			condition: Record<string, string>;
+			transport: {
+				method: string;
+				session_id?: string;
+				connected_at?: string;
+				disconnected_at?: string;
+			};
+			created_at: string;
+			cost: number;
+		}>;
+		total: number;
+		total_cost: number;
+		max_total_cost: number;
+	} | null>;
+	sessionId: string | null;
+	subscriptionId: string | null;
+};
 
 /**
  * Hook for managing EventSub WebSocket connection and chat integration

@@ -142,7 +142,7 @@ export function ShowRaffleState() {
 								<h4 className="mb-2 font-semibold text-blue-400 text-xs">
 									{title}
 								</h4>
-								<pre className="max-h-[40vh] overflow-auto rounded border border-slate-700 bg-slate-950 p-3 font-mono text-slate-300 text-xs">
+								<pre className="max-h-full overflow-auto rounded border border-slate-700 bg-slate-950 p-3 font-mono text-slate-300 text-xs">
 									<code
 										// Telling biome to ignore this, there's no danger on coloring JSON.
 										// biome-ignore lint/security/noDangerouslySetInnerHtml: Safe controlled JSON syntax highlighting for diagnostics

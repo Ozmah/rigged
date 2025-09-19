@@ -1,12 +1,12 @@
-// Hooks/Providers/Functional Components
+// Framework Specific/Hooks/Providers/Functional Components
 
 // UI/Styles/UI Components
-import { TrophyIcon } from "@phosphor-icons/react";
+import { FlaskIcon, TrophyIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
+import { CheckCircleIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
-// Types
 import type { StickToBottomContext } from "use-stick-to-bottom";
 import {
 	Conversation,
@@ -15,31 +15,22 @@ import {
 } from "@/components/ai-elements/conversation";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { MicroMenuMobile } from "@/components/raffle/micro-menu-mobile";
-import { SettingsPanel } from "@/components/raffle/settings-panel";
+import { RiggedSettings } from "@/components/raffle/rigged-settings";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
+import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
-
-// Libs
-import { detectDevice } from "@/lib/device-detection";
-import { chatStore, MAX_MESSAGES } from "@/stores/chat";
+// Types/Store State
+import { chatStore, isGeneratingMessages, MAX_MESSAGES } from "@/stores/chat";
 
 export const Route = createFileRoute("/_layout/")({
 	component: RaffleComponent,
 });
 
 function RaffleComponent() {
-	// Router context
-	// We might use this to solve an edge case where if the user
-	// resizes the browser into a mobile resolution, we don't have
-	// anything reactive sensing if the device changed in real time.
-	// const router = useRouter();
-
-	// Device detection (This is a simple function,
-	// NOT reactive, user changes window size and we're screwed)
-	const device = detectDevice();
+	const device = useDeviceDetection();
 	// Chat state
 	const messages = useStore(chatStore, (state) => state.messages);
 	const participants = useStore(chatStore, (state) => state.participants);
@@ -58,6 +49,20 @@ function RaffleComponent() {
 	const eventSubHook = useTwitchEventSub();
 	const { isConnected, isConnecting } = eventSubHook;
 	const contextRef = useRef<StickToBottomContext>(null);
+
+	// Derived state
+	const isGeneratingMessagesState = useStore(isGeneratingMessages);
+
+	// Mount all derived state
+	useEffect(() => {
+		const unsubscribers = [isGeneratingMessages.mount()];
+
+		return () => {
+			for (const unsub of unsubscribers) {
+				unsub();
+			}
+		};
+	}, []);
 
 	// This hook was created to handle the problem caused by the current message storing approach,
 	// messages are stored inside the message Store, we retain a fixed amount and when we reach that,
@@ -90,7 +95,7 @@ function RaffleComponent() {
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && (
-					<SettingsPanel eventSubHook={eventSubHook} />
+					<RiggedSettings eventSubHook={eventSubHook} />
 				)}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
@@ -105,6 +110,15 @@ function RaffleComponent() {
 						<TypographyH4>
 							Chat de {currentChannel?.name}
 						</TypographyH4>
+						<div className="flex flex-1 justify-end">
+							{/* Will create an array of badges to show
+							stuff active in the chat (raffle, generate messages, etc.) */}
+							{isGeneratingMessagesState && (
+								<Badge variant="outline" asChild>
+									<FlaskIcon size={25} />
+								</Badge>
+							)}
+						</div>
 					</div>
 					<div className="relative">
 						<Conversation
@@ -200,9 +214,13 @@ function RaffleComponent() {
 												{message.isParticipant && (
 													<Badge
 														variant="secondary"
-														className="ml-auto border-green-500/20 bg-green-500/10 text-green-600 text-xs dark:text-green-400"
+														className="ml-auto rounded-full border-green-500/20 bg-green-500/10 text-green-600 text-xs dark:text-green-400"
+														asChild
 													>
-														Participante
+														<CheckCircleIcon
+															height={30}
+															width={17}
+														/>
 													</Badge>
 												)}
 												{message.cheer && (
