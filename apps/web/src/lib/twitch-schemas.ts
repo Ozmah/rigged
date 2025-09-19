@@ -53,3 +53,51 @@ export const ChattersResponseSchema = z.object({
 
 export type Chatter = z.infer<typeof ChatterSchema>;
 export type ChattersResponse = z.infer<typeof ChattersResponseSchema>;
+
+// Schema for /moderation/channels
+export const TwitchChannelSchema = z.object({
+	broadcaster_id: z.string(),
+	broadcaster_login: z.string(),
+	broadcaster_name: z.string(),
+});
+
+export const TwitchModeratedChannelsResponseSchema = z.object({
+	data: z.array(TwitchChannelSchema),
+	pagination: z.object({
+		cursor: z.string().optional(),
+	}),
+});
+
+export type TwitchChannel = z.infer<typeof TwitchChannelSchema>;
+export type ModeratedChannelsResponse = z.infer<
+	typeof TwitchModeratedChannelsResponseSchema
+>;
+
+// Schema for /eventsub/subscriptions
+export const EventSubSubscriptionSchema = z.object({
+	id: z.string(),
+	status: z.string(),
+	type: z.string(),
+	version: z.string(),
+	condition: z.record(z.string(), z.string()),
+	transport: z.object({
+		method: z.string(),
+		session_id: z.string().optional(),
+		connected_at: z.string().optional(),
+		disconnected_at: z.string().optional(),
+	}),
+	created_at: z.string(),
+	cost: z.number(),
+});
+
+export const EventSubSubscriptionsResponseSchema = z.object({
+	data: z.array(EventSubSubscriptionSchema),
+	total: z.number(),
+	total_cost: z.number(),
+	max_total_cost: z.number(),
+});
+
+export type EventSubSubscription = z.infer<typeof EventSubSubscriptionSchema>;
+export type EventSubSubscriptionsResponse = z.infer<
+	typeof EventSubSubscriptionsResponseSchema
+>;

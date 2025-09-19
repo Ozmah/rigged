@@ -1,5 +1,8 @@
+// Hooks/Providers/Functional Components
 import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
+
+// UI/Styles/UI Components
 import { LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +14,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// Libs
 import { authStore, clearAuth } from "@/stores/auth";
 
 export function UserDropdown() {

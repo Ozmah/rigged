@@ -1,8 +1,15 @@
+// Hooks/Providers/Functional Components
 import { useRouteContext } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { useCallback, useEffect, useRef } from "react";
+
+// UI/Styles/UI Components
 import { toast } from "sonner";
+
+// Types
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+
+// Libs
 import { authStore } from "@/stores/auth";
 import {
 	addChatMessage,
@@ -17,7 +24,6 @@ const BASE_RETRY_DELAY = Number(import.meta.env.VITE_BASE_RETRY_DELAY) || 1000;
 /**
  * Hook for managing EventSub WebSocket connection and chat integration
  * Handles authentication, connection lifecycle, and chat message processing
- * PATTERN: Back to rigged2 working pattern - local instances, not singletons
  */
 export function useTwitchEventSub() {
 	// const eventSubRef = useRef<TwitchEventSubWebSocket | null>(null);
@@ -35,7 +41,7 @@ export function useTwitchEventSub() {
 	const retryCountRef = useRef(0);
 	const retryTimeoutRef = useRef<number | null>(null);
 
-	// 🔍 DEBUG: Track what's causing re-renders
+	// This console log will be removed in beta, was used to track a re-render issue
 	const renderCount = useRef(0);
 	renderCount.current += 1;
 	console.log(`🔄 useTwitchEventSub render #${renderCount.current}`);
@@ -50,6 +56,10 @@ export function useTwitchEventSub() {
 	const connectionStatus = useStore(
 		chatStore,
 		(state) => state.connectionStatus,
+	);
+	const isSwitchingChannel = useStore(
+		chatStore,
+		(state) => state.isSwitchingChannel,
 	);
 
 	/**
@@ -87,13 +97,11 @@ export function useTwitchEventSub() {
 	const scheduleRetry = useCallback((errorMessage: string) => {
 		console.log(`🔄 scheduleRetry called with error: ${errorMessage}`);
 
-		// Clear any existing retry timeout
 		if (retryTimeoutRef.current) {
 			clearTimeout(retryTimeoutRef.current);
 			retryTimeoutRef.current = null;
 		}
 
-		// Check if we should retry
 		if (retryCountRef.current < MAX_RETRIES) {
 			const retryDelay = BASE_RETRY_DELAY * 2 ** retryCountRef.current;
 			retryCountRef.current += 1;
@@ -179,9 +187,9 @@ export function useTwitchEventSub() {
 	 * Disconnects from EventSub WebSocket and clears references
 	 * Nullify the ref after disconnect
 	 */
-	const disconnect = useCallback(() => {
+	const disconnect = useCallback(async () => {
 		if (twitchEventSubWebSocket) {
-			twitchEventSubWebSocket.disconnect();
+			await twitchEventSubWebSocket.disconnect();
 		}
 
 		subscriptionIdRef.current = null;
@@ -192,101 +200,115 @@ export function useTwitchEventSub() {
 	 * Establishes EventSub WebSocket connection and creates chat subscription
 	 * Critical: Creates subscription within 10 seconds of session_welcome to avoid timeout
 	 */
-	const connect = useCallback(async () => {
-		console.log("🚀 connect() called - checking auth state:", {
-			isAuthenticated,
-			hasUser: !!user,
-			hasToken: !!accessToken,
-		});
-
-		if (!isAuthenticated || !user || !accessToken) {
-			setConnectionStatus(
-				CONNECTION_STATUS.ERROR,
-				"User not authenticated",
-			);
-			return;
-		}
-
-		if (twitchEventSubWebSocket.isConnected()) {
-			return;
-		}
-
-		const clientId = import.meta.env.VITE_CLIENT_ID;
-		if (!clientId) {
-			setConnectionStatus(
-				CONNECTION_STATUS.ERROR,
-				"VITE_CLIENT_ID not configured",
-			);
-			toast.error("⚙️ Configuración incorrecta", {
-				description:
-					"Necesitas tu clave de cliente Twitch para que funcione",
-				duration: 8000,
-				closeButton: true,
+	const connect = useCallback(
+		async (broadcasterId?: string) => {
+			console.log("🚀 connect() called - checking auth state:", {
+				isAuthenticated,
+				hasUser: !!user,
+				hasToken: !!accessToken,
+				stack: new Error().stack,
 			});
-			return;
-		}
 
-		try {
-			setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+			if (!isAuthenticated || !user || !accessToken) {
+				setConnectionStatus(
+					CONNECTION_STATUS.ERROR,
+					"User not authenticated",
+				);
+				return;
+			}
 
-			await twitchAPI.getCurrentUser();
+			if (twitchEventSubWebSocket.isConnected()) {
+				console.log("🚫 Already connected, skipping connect()");
+				return;
+			}
 
-			// Create fresh TwitchEventSubWebSocket
-			// eventSubRef.current = new TwitchEventSubWebSocket();
-			await twitchEventSubWebSocket.connect(
-				handleChatMessage,
-				handleConnectionChange,
-				handleError,
-			);
+			if (connectionStatus === CONNECTION_STATUS.CONNECTING) {
+				console.log("🚫 Already connecting, skipping connect()");
+				return;
+			}
 
-			const sessionId =
-				await twitchEventSubWebSocket.waitForSessionWelcome();
+			const clientId = import.meta.env.VITE_CLIENT_ID;
+			if (!clientId) {
+				setConnectionStatus(
+					CONNECTION_STATUS.ERROR,
+					"VITE_CLIENT_ID not configured",
+				);
+				toast.error("⚙️ Configuración incorrecta", {
+					description:
+						"Necesitas tu clave de cliente Twitch para que funcione",
+					duration: 8000,
+					closeButton: true,
+				});
+				return;
+			}
 
-			const subscriptionResponse =
-				await twitchAPI.createChatMessageSubscription(
-					sessionId,
-					user.id,
-					user.id,
+			try {
+				setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+
+				// Not sure if we're going to use this
+				// await twitchAPI.getCurrentUser();
+
+				// Create fresh TwitchEventSubWebSocket
+				// eventSubRef.current = new TwitchEventSubWebSocket();
+				await twitchEventSubWebSocket.connect(
+					handleChatMessage,
+					handleConnectionChange,
+					handleError,
 				);
 
-			if (subscriptionResponse.data.length > 0) {
-				subscriptionIdRef.current = subscriptionResponse.data[0].id;
-				setConnectionStatus(CONNECTION_STATUS.CONNECTED);
+				const sessionId =
+					await twitchEventSubWebSocket.waitForSessionWelcome();
 
-				// Reset retry count on successful connection
-				retryCountRef.current = 0;
-				console.log("✅ Connection successful - retry count reset");
+				const subscriptionResponse =
+					await twitchAPI.createChatMessageSubscription(
+						sessionId,
+						broadcasterId ?? user.id,
+						user.id,
+					);
 
-				setTimeout(() => diagnoseSubscriptions(), 2000);
-			} else {
-				throw new Error("Subscription response was empty");
+				if (subscriptionResponse.data.length > 0) {
+					subscriptionIdRef.current = subscriptionResponse.data[0].id;
+					setConnectionStatus(CONNECTION_STATUS.CONNECTED);
+
+					// Reset retry count on successful connection
+					retryCountRef.current = 0;
+					console.log("✅ Connection successful - retry count reset");
+
+					setTimeout(() => diagnoseSubscriptions(), 2000);
+				} else {
+					throw new Error("Subscription response was empty");
+				}
+			} catch (error) {
+				const errorMessage =
+					error instanceof Error
+						? error.message
+						: "Connection failed";
+				console.error("EventSub connection failed:", error);
+
+				disconnect();
+
+				// Retry logic
+				scheduleRetry(errorMessage);
 			}
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : "Connection failed";
-			console.error("EventSub connection failed:", error);
-
-			disconnect();
-
-			// Retry logic
-			scheduleRetry(errorMessage);
-		}
-	}, [
-		isAuthenticated,
-		user,
-		accessToken,
-		twitchAPI.createChatMessageSubscription,
-		twitchAPI.getCurrentUser,
-		twitchEventSubWebSocket.connect,
-		twitchEventSubWebSocket.isConnected,
-		twitchEventSubWebSocket.waitForSessionWelcome,
-		handleChatMessage,
-		handleConnectionChange,
-		handleError,
-		diagnoseSubscriptions,
-		scheduleRetry,
-		disconnect,
-	]);
+		},
+		[
+			isAuthenticated,
+			connectionStatus,
+			user,
+			accessToken,
+			twitchAPI.createChatMessageSubscription,
+			// twitchAPI.getCurrentUser,
+			twitchEventSubWebSocket.connect,
+			twitchEventSubWebSocket.isConnected,
+			twitchEventSubWebSocket.waitForSessionWelcome,
+			handleChatMessage,
+			handleConnectionChange,
+			handleError,
+			diagnoseSubscriptions,
+			scheduleRetry,
+			disconnect,
+		],
+	);
 
 	/**
 	 * Toggles connection state between connected and disconnected
@@ -301,7 +323,6 @@ export function useTwitchEventSub() {
 
 	/**
 	 * Auto-connects when user authentication is complete
-	 * PATTERN: Same as rigged2 - this worked before, with retry logic
 	 */
 	useEffect(() => {
 		console.log("🔄 useEffect triggered:", {
@@ -320,12 +341,22 @@ export function useTwitchEventSub() {
 			isAuthenticated &&
 			user &&
 			accessToken &&
-			connectionStatus === CONNECTION_STATUS.DISCONNECTED
+			connectionStatus === CONNECTION_STATUS.DISCONNECTED &&
+			!twitchEventSubWebSocket.isConnected() &&
+			!isSwitchingChannel
 		) {
-			console.log("✅ Conditions met - calling connect()");
+			console.log("✅ Auto-connect conditions met - calling connect()");
 			connect();
 		}
-	}, [isAuthenticated, user, accessToken, connectionStatus, connect]);
+	}, [
+		isAuthenticated,
+		user,
+		accessToken,
+		connectionStatus,
+		isSwitchingChannel,
+		twitchEventSubWebSocket.isConnected,
+		connect,
+	]);
 
 	/**
 	 * Cleanup connections and retry timeouts on component unmount

@@ -5,9 +5,13 @@ Una herramienta simple, rápida y gratuita para sorteos en Twitch. Realiza sorte
 ## ✨ Características
 
 - **Integración de chat en tiempo real** - Captura automáticamente mensajes del chat durante los períodos de sorteo
-- **Múltiples ganadores** - Puedes sacar uno o más ganadores, tantos como participantes haya
-- **Exportar resultados** - Guarda datos completos del sorteo y listas de ganadores (👷 en construcción)
-- **Código Libre** - Siéntete libre de usarlo desde tu computadora o bien, alójalo en un servidor propio.
+- **Múltiples ganadores** - Selecciona uno o más ganadores de los participantes
+- **Filtrado avanzado** - Excluye moderadores, suscriptores o VIPs de los sorteos
+- **Boletos extra** - Otorga entradas adicionales a suscriptores y VIPs para mejores probabilidades
+- **Cambio de canales** - Los moderadores pueden realizar sorteos en canales que moderan
+- **Persistencia de estado** - Tus configuraciones y preferencias se guardan entre sesiones
+- **Visualización de mensajes** - Ve mensajes entrantes en tiempo real durante los sorteos
+- **Código abierto** - Solución auto-hospedada con total transparencia
 
 ## 🎯 ¿Para quién es esto?
 
@@ -32,7 +36,7 @@ Streamers pequeños que necesitan una herramienta de sorteos confiable sin quebr
    - Ve a [Consola de Desarrollador de Twitch](https://dev.twitch.tv/console)
    - Haz clic en "Register Your Application"
    - Nombre: `Sorteos de Tu Stream` (o como prefieras)
-   - URL de Redirección OAuth: `https://localhost:3001/auth/callback`
+    - URL de Redirección OAuth: `https://localhost:3001/callback`
    - Categoría: `Application Integration`
    - Copia tu **Client ID**
 
@@ -88,18 +92,20 @@ Streamers pequeños que necesitan una herramienta de sorteos confiable sin quebr
 3. **¡Estás listo!** - Comienza a hacer sorteos inmediatamente
 
 ### Ejecutando un Sorteo
-1. **Palabra Clave** - Primero agrega la palabra clave que quieres que el chat escriba
-2. **Inicia captura** - Haz clic en "Iniciar Sorteo" cuando estés listo para comenzar
-3. **Deja que los viewers participen** - Cualquiera que chatee y escriba la palabra clave durante este período se inscribe automáticamente
-4. **Detén y sortea** - Haz clic en "¡Siguiente paso!" para dejar de capturar y alistarte para seleccionar al ganador
-5. **Elegir un ganador** - Presiona "¡Elegir un ganador!" para seleccionar al primer ganador, el botón te permite elegir más ganadores
-6. **Exporta si es necesario** - Guarda la lista completa de participantes y resultados (🛠️ ya merito)
+1. **Establecer palabra clave** - Ingresa la palabra o frase que los participantes deben escribir
+2. **Configurar opciones** - Usa configuraciones avanzadas para excluir ciertos tipos de usuarios o dar boletos extra
+3. **Iniciar sorteo** - Haz clic en "Iniciar Sorteo" para comenzar a capturar mensajes del chat
+4. **Monitorear participación** - Observa mensajes en tiempo real y el conteo de participantes
+5. **Preparar ganadores** - Haz clic en "Preparar Sorteo" para detener la captura y preparar la selección de ganadores
+6. **Seleccionar ganadores** - Haz clic en "Ejecutar Sorteo" para seleccionar y anunciar ganadores aleatoriamente
+7. **Reiniciar para siguiente ronda** - Limpia participantes o ajusta configuraciones para otro sorteo
 
 ### Consejos para el Éxito
 - **Anuncia claramente** cuándo empiezan y terminan los sorteos
-- **Establece reglas claras** sobre participación (un mensaje = una entrada, etc.)
-- **Usa múltiples rondas** 👷 está planeado agregar "descartados" para agregar emoción al sorteo
-- **Exporta resultados** para verificar imparcialidad si te lo cuestionan (👷 ya saben...)
+- **Establece reglas claras** sobre participación y elegibilidad
+- **Usa opciones avanzadas** para personalizar sorteos según tu comunidad
+- **Prueba configuraciones** con el generador de mensajes integrado antes de ir en vivo
+- **Cambia de canales** si moderas múltiples streams y quieres realizar sorteos allí
 
 ## ⚙️ Configuración
 
@@ -108,22 +114,29 @@ Crea un archivo `.env` en el directorio raíz:
 
 ```env
 VITE_CLIENT_ID=tu_client_id_de_twitch
+VITE_ANON_DEBUG=1
 ```
+
+- `VITE_CLIENT_ID` - Tu ID de cliente de la aplicación de Twitch
+- `VITE_ANON_DEBUG` - Establece en `1` para anonimizar datos sensibles en herramientas de debug (recomendado)
 
 ### Permisos de Twitch
 La aplicación solicita estos permisos:
-- `user:read:chat` - Para leer mensajes del chat para sorteos
-- `user:bot` - Para conectarse como usuario bot
-- `channel:bot` - Para acceder a funciones de bot del canal
-- `user:read:email` - Para información básica del perfil
+- `user:read:chat` - Leer mensajes del chat durante períodos de sorteo
+- `user:bot` - Conectarse al chat como usuario bot
+- `channel:bot` - Acceder a funciones de bot específicas del canal
+- `channel:moderate` - Acceder a funciones de moderación para canales que moderas
+- `user:read:email` - Información básica del perfil para autenticación
 
 ## 🛠️ Desarrollo
 
 Este proyecto usa:
 - **React 19** con TypeScript
-- **TanStack Router** para navegación
+- **TanStack Router** para navegación y enrutamiento
 - **TanStack Store** para manejo de estado
+- **TanStack DevTools** para depuración y desarrollo
 - **Tailwind CSS** para estilos
+- **Phosphor Icons** para iconografía
 - **Vite** para desarrollo y construcción
 
 ```bash
@@ -159,11 +172,12 @@ bun preview
 ### "No se puede conectar a Twitch"
 - Verifica tu conexión a internet
 - Verifica que tu Client ID sea correcto en el archivo `.env`
-- Asegúrate de que la URL de redirección en tu aplicación de Twitch coincida exactamente: `https://localhost:3001/auth/callback`
+- Asegúrate de que la URL de redirección en tu aplicación de Twitch coincida exactamente: `https://localhost:3001/callback`
 
 ### Errores de "Permiso denegado"
 - Asegúrate de haber otorgado todos los permisos solicitados durante el login
 - Intenta cerrar sesión e iniciar sesión nuevamente
+- Verifica que tengas privilegios de moderación si intentas cambiar de canales
 
 ### La aplicación no inicia
 - Asegúrate de que Node.js 18+ esté instalado: `node --version`

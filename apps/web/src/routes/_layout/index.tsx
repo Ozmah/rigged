@@ -1,27 +1,30 @@
+// Hooks/Providers/Functional Components
+
+// UI/Styles/UI Components
 import { TrophyIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
+// Types
 import type { StickToBottomContext } from "use-stick-to-bottom";
 import {
 	Conversation,
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { EventSubDiagnostics } from "@/components/eventsub-diagnostics";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { MicroMenuMobile } from "@/components/raffle/micro-menu-mobile";
 import { SettingsPanel } from "@/components/raffle/settings-panel";
-import { ShowRaffleState } from "@/components/show-raffle-state";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
 import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
+
+// Libs
 import { detectDevice } from "@/lib/device-detection";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
-import { uiStore } from "@/stores/ui";
 
 export const Route = createFileRoute("/_layout/")({
 	component: RaffleComponent,
@@ -44,19 +47,16 @@ function RaffleComponent() {
 		chatStore,
 		(state) => state.connectionStatus,
 	);
+	const currentChannel = useStore(chatStore, (state) => state.currentChannel);
 	const raffleWinners = useStore(chatStore, (state) => state.winners);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 
 	// Debug
-	const isRaffleStateOpen = useStore(
-		uiStore,
-		(state) => state.isRaffleStateOpen,
-	);
 	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
-	const { isConnected, isConnecting, sessionId, subscriptionId } =
-		useTwitchEventSub();
+	const eventSubHook = useTwitchEventSub();
+	const { isConnected, isConnecting } = eventSubHook;
 	const contextRef = useRef<StickToBottomContext>(null);
 
 	// This hook was created to handle the problem caused by the current message storing approach,
@@ -65,6 +65,7 @@ function RaffleComponent() {
 	// component automatic scroll behavior since we "push" the scroll a bit, so we check isAtBottom after
 	// 200 ms to ensure that we send the user to the bottom after the store has been updated with the latest
 	// message.
+	// This is expected to break with very active chats. More testing needed.
 	useEffect(() => {
 		if (messages.length >= MAX_MESSAGES && contextRef.current?.isAtBottom) {
 			setTimeout(() => {
@@ -84,30 +85,15 @@ function RaffleComponent() {
 					{version}
 				</Badge>
 			</div>
-
-			{/* Dev Data */}
-			{isRaffleStateOpen && (
-				<>
-					<div className="col-span-3 col-start-1 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-start-2">
-						<ShowRaffleState />
-					</div>
-					<div className="col-span-3 col-start-4 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-span-2 2xl:row-start-5">
-						<EventSubDiagnostics
-							sessionId={sessionId}
-							subscriptionId={subscriptionId}
-							isConnected={isConnected}
-							isConnecting={isConnecting}
-						/>
-					</div>
-				</>
-			)}
 			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
 				{device.isMobile ? <MicroMenuMobile /> : <MicroMenu />}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
-				{!device.isMobile && <SettingsPanel />}
+				{!device.isMobile && (
+					<SettingsPanel eventSubHook={eventSubHook} />
+				)}
 			</div>
-			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:p-0 sm:col-span-3 sm:col-start-4 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
@@ -116,7 +102,9 @@ function RaffleComponent() {
 							ping={true}
 							size="md"
 						/>
-						<TypographyH4>Chat</TypographyH4>
+						<TypographyH4>
+							Chat de {currentChannel?.name}
+						</TypographyH4>
 					</div>
 					<div className="relative">
 						<Conversation

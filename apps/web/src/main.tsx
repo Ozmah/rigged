@@ -1,8 +1,13 @@
+// Hooks/Providers/Functional Components
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
+
+// UI/Styles/UI Components
 import Loader from "./components/loader";
+// Libs
 import { TwitchAPI } from "./lib/twitch-api-client";
 import { TwitchEventSubWebSocket } from "./lib/twitch-eventsub-client";
+// Types
 import type { RouterAppContext } from "./routes/__root";
 import { routeTree } from "./routeTree.gen";
 

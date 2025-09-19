@@ -1,6 +1,7 @@
 import { Derived, Store } from "@tanstack/store";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
+import { authStore } from "./auth";
 import { uiStore, updateUiState } from "./ui";
 
 export const MAX_MESSAGES = 100;
@@ -61,6 +62,7 @@ export type ConnectionStatus =
  * Raffle configurations saved to Local Storage
  */
 export interface PersistedRaffleConfig {
+	// Raffle options
 	advanced: boolean;
 	caseSensitive: boolean;
 	removeWinners: boolean;
@@ -73,6 +75,8 @@ export interface PersistedRaffleConfig {
 	ignoreSubs: boolean;
 	ignoreVips: boolean;
 	ticketValue: number;
+	// General Options
+	sendRaffleUpdates: boolean;
 	// There was a maxWinners and was ditched
 	// to allow streamers to pick as many
 	// winners as they want
@@ -92,6 +96,12 @@ export interface ChatState {
 	// Connection
 	connectionStatus: ConnectionStatus;
 	connectionError: string | null;
+	isSwitchingChannel: boolean;
+	currentChannel: {
+		id: string;
+		login: string;
+		name: string;
+	} | null;
 
 	// Chat messages
 	messages: ChatMessage[];
@@ -137,6 +147,7 @@ export const saveRaffleConfigState = (state: RaffleConfig): void => {
 			ignoreSubs: state.ignoreSubs,
 			ignoreVips: state.ignoreVips,
 			ticketValue: state.ticketValue,
+			sendRaffleUpdates: state.sendRaffleUpdates,
 		};
 
 		localStorage.setItem(
@@ -204,6 +215,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - ignoreSubs: false - Subscribers can participate in raffles by default
  * - ignoreVips: false - VIPs can participate in raffles by default
  * - ticketValue: 1 - Base ticket value for all participants
+ * - sendRaffleUpdates: true - Messages to be sent to chat to update about the raffle (Optional for streamer only)
  *
  * Raffle State Management:
  * - participants: [] - No participants captured at startup
@@ -225,6 +237,8 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
 const initialState: ChatState = {
 	connectionStatus: CONNECTION_STATUS.DISCONNECTED,
 	connectionError: null,
+	isSwitchingChannel: false,
+	currentChannel: null,
 
 	messages: [],
 	maxMessages: MAX_MESSAGES,
@@ -243,6 +257,7 @@ const initialState: ChatState = {
 		ignoreSubs: false,
 		ignoreVips: false,
 		ticketValue: 1,
+		sendRaffleUpdates: true,
 		...loadPersistedRaffleConfigState(),
 	},
 
@@ -806,6 +821,73 @@ export const getRaffleStats = () => {
 	};
 };
 
+/**
+ * Resets chat state to initial values
+ * Preserves: raffleConfig (user preferences)
+ * Resets: messages, participants, winners, connection, stats
+ */
+export const resetChatState = () => {
+	chatStore.setState((state) => ({
+		...state,
+		messages: [],
+
+		raffleConfig: {
+			...state.raffleConfig,
+			sendRaffleUpdates: true,
+		},
+
+		participants: [],
+		winners: [],
+		isCapturing: false,
+		isRaffleRigged: false,
+		currentRound: 1,
+
+		connectionStatus: CONNECTION_STATUS.DISCONNECTED,
+		connectionError: null,
+
+		stats: {
+			totalMessages: 0,
+			uniqueParticipants: 0,
+			messagesPerMinute: 0,
+			captureStartTime: undefined,
+		},
+
+		debug: {
+			chatInterval: undefined,
+			isChatGenerating: false,
+		},
+
+		// Careful with the preserved state, this is a
+		// soft reset designed to preserve options and preferences
+	}));
+};
+
+/**
+ * Sets channel switching flag to prevent auto-connect during channel switch
+ */
+export const setChannelSwitching = (isSwitching: boolean) => {
+	chatStore.setState((state) => ({
+		...state,
+		isSwitchingChannel: isSwitching,
+	}));
+};
+
+/**
+ * Sets the current channel we're connected to
+ */
+export const setCurrentChannel = (
+	channel: {
+		id: string;
+		login: string;
+		name: string;
+	} | null,
+) => {
+	chatStore.setState((state) => ({
+		...state,
+		currentChannel: channel,
+	}));
+};
+
 /* 	This is the first part of a refactor of all UI and State actions,
 	most of the logic has been abstracted and is based off of all these state "flags",
 	this allows us to expand and use any action in the sistem from anywhere without
@@ -833,13 +915,13 @@ export interface RaffleStateActions {
 	toggleRemoveWinners: (enabled: boolean) => void;
 	toggleSubsExtraTickets: (enabled: boolean) => void;
 	toggleVipsExtraTickets: (enabled: boolean) => void;
+	toggleRaffleUpdates: (enabled: boolean) => void;
 	updateSubsExtraValue: (value: number) => void;
 	updateVipsExtraValue: (value: number) => void;
 
 	/*** Dev Tools Actions ***/
 	startTestMessages: () => void;
 	stopTestMessages: () => void;
-	toggleDebugState: () => void;
 	clearChatMessages: () => void;
 
 	/*** UI State Actions ***/
@@ -945,6 +1027,10 @@ export const raffleStateActions: RaffleStateActions = {
 		updateRaffleConfig({ vipsExtraTickets: enabled });
 	},
 
+	toggleRaffleUpdates: (enabled: boolean) => {
+		updateRaffleConfig({ sendRaffleUpdates: enabled });
+	},
+
 	updateSubsExtraValue: (value: number) => {
 		updateRaffleConfig({ subsExtraValue: value });
 	},
@@ -969,10 +1055,6 @@ export const raffleStateActions: RaffleStateActions = {
 			duration: 3000,
 			closeButton: true,
 		});
-	},
-
-	toggleDebugState: () => {
-		updateUiState({ isRaffleStateOpen: !isRaffleStateOpen.state });
 	},
 
 	clearChatMessages: () => {
@@ -1039,6 +1121,15 @@ export const hasValidKeyword = new Derived({
 export const canStartRaffle = new Derived({
 	fn: () => isConnected.state && hasValidKeyword.state,
 	deps: [isConnected, hasValidKeyword],
+});
+
+export const isThisMyStream = new Derived({
+	fn: () => {
+		if (!authStore.state.user?.id || !chatStore.state.currentChannel?.id)
+			return false;
+		return authStore.state.user.id === chatStore.state.currentChannel.id;
+	},
+	deps: [authStore, chatStore],
 });
 
 /*** Raffle state ***/
@@ -1145,11 +1236,6 @@ export const hideRaffleControls = new Derived({
 	deps: [uiStore],
 });
 
-export const isRaffleStateOpen = new Derived({
-	fn: () => uiStore.state.isRaffleStateOpen,
-	deps: [uiStore],
-});
-
 export const microMenuSelected = new Derived({
 	fn: () => uiStore.state.microMenuSelected,
 	deps: [uiStore],
@@ -1169,15 +1255,4 @@ export const testMessagesButtonText = new Derived({
 export const testMessagesButtonVariant = new Derived({
 	fn: () => (isGeneratingMessages.state ? "secondary" : "default"),
 	deps: [isGeneratingMessages],
-});
-
-export const debugStateButtonText = new Derived({
-	fn: () =>
-		isRaffleStateOpen.state ? "Esconder Datos Dev" : "Mostrar Datos Dev",
-	deps: [isRaffleStateOpen],
-});
-
-export const debugStateButtonVariant = new Derived({
-	fn: () => (isRaffleStateOpen.state ? "secondary" : "default"),
-	deps: [isRaffleStateOpen],
 });

@@ -83,6 +83,13 @@ interface ToggleVipsExtraTicketsAction {
 	};
 }
 
+interface ToggleRaffleUpdatesAction {
+	type: "TOGGLE_RAFFLE_UPDATES";
+	payload: {
+		enabled: boolean;
+	};
+}
+
 interface UpdateSubsExtraValueAction {
 	type: "UPDATE_SUBS_EXTRA_VALUE";
 	payload: {
@@ -104,10 +111,6 @@ interface StartTestMessagesAction {
 
 interface StopTestMessagesAction {
 	type: "STOP_TEST_MESSAGES";
-}
-
-interface ToggleDebugStateAction {
-	type: "TOGGLE_DEBUG_STATE";
 }
 
 interface ClearChatMessagesAction {
@@ -156,11 +159,11 @@ export type RaffleUiAction =
 	| ToggleRemoveWinnersAction
 	| ToggleSubsExtraTicketsAction
 	| ToggleVipsExtraTicketsAction
+	| ToggleRaffleUpdatesAction
 	| UpdateSubsExtraValueAction
 	| UpdateVipsExtraValueAction
 	| StartTestMessagesAction
 	| StopTestMessagesAction
-	| ToggleDebugStateAction
 	| ClearChatMessagesAction
 	| OpenCancelDialogAction
 	| CloseCancelDialogAction
@@ -242,6 +245,11 @@ export const createRaffleUiAction = {
 		payload: { enabled },
 	}),
 
+	toggleRaffleUpdates: (enabled: boolean): ToggleRaffleUpdatesAction => ({
+		type: "TOGGLE_RAFFLE_UPDATES",
+		payload: { enabled },
+	}),
+
 	updateSubsExtraValue: (value: number): UpdateSubsExtraValueAction => ({
 		type: "UPDATE_SUBS_EXTRA_VALUE",
 		payload: { value },
@@ -259,10 +267,6 @@ export const createRaffleUiAction = {
 
 	stopTestMessages: (): StopTestMessagesAction => ({
 		type: "STOP_TEST_MESSAGES",
-	}),
-
-	toggleDebugState: (): ToggleDebugStateAction => ({
-		type: "TOGGLE_DEBUG_STATE",
 	}),
 
 	clearChatMessages: (): ClearChatMessagesAction => ({

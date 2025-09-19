@@ -9,7 +9,6 @@ export interface uiState {
 	haveNotifications: boolean;
 	showCancelDialog: boolean;
 	hideRaffleControls: boolean;
-	isRaffleStateOpen: boolean;
 	error: string | null;
 }
 
@@ -70,7 +69,6 @@ const initialState: uiState = {
 	haveNotifications: false,
 	showCancelDialog: false,
 	hideRaffleControls: false,
-	isRaffleStateOpen: false,
 	error: null,
 	...loadPersistedUiState(),
 };
@@ -97,5 +95,23 @@ export const setUiError = (error: string) => {
 	uiStore.setState((state) => ({
 		...state,
 		error,
+	}));
+};
+
+/**
+ * Resets transient UI state to initial values
+ * Preserves: isMicroMenuOpen, microMenuSelected
+ * Resets: dialogs, notifications, temporary states
+ */
+export const resetUIState = () => {
+	uiStore.setState((state) => ({
+		...state,
+		isBellOpen: false,
+		haveNotifications: false,
+		showCancelDialog: false,
+
+		hideRaffleControls: false,
+
+		error: null,
 	}));
 };

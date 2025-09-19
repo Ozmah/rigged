@@ -1,5 +1,8 @@
+// Hooks/Providers/Functional Components
+
+import { GithubLogoIcon, QuestionIcon } from "@phosphor-icons/react";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { Rocket } from "lucide-react";
+// UI/Styles/UI Components
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +13,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+
+// Libs
 import { authStore, setAuthError } from "@/stores/auth";
 
 export const Route = createFileRoute("/login")({
@@ -51,7 +56,7 @@ function LoginComponent() {
 			<div className="w-full max-w-sm">
 				<div className="flex flex-col gap-6">
 					<Alert>
-						<Rocket className="h-4 w-4" />
+						<GithubLogoIcon className="h-4 w-4" />
 						<AlertTitle>Versión {version}</AlertTitle>
 						<AlertDescription>{description}</AlertDescription>
 					</Alert>
@@ -127,6 +132,23 @@ function LoginComponent() {
 							</div>
 						</CardContent>
 					</Card>
+					<Alert>
+						<QuestionIcon />
+						<AlertTitle>Aviso:</AlertTitle>
+						<AlertDescription className="inline">
+							Rigged no conserva tu información, no es almacenada
+							ni utilizada para nada que no sea el uso de la
+							aplicación, te invito a visitar el repositorio de{" "}
+							<a
+								href="https://github.com/Ozmah/rigged"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-cyan-600 hover:underline"
+							>
+								GitHub
+							</a>
+						</AlertDescription>
+					</Alert>
 				</div>
 			</div>
 		</div>

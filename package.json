@@ -1,14 +1,15 @@
 {
 	"name": "rigged",
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.0"
+	},
+	"packageManager": "bun@1.2.15",
 	"private": true,
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
 	"scripts": {
-		"check": "biome check --write .",
-		"lint": "bunx --bun biome lint apps/web/ --max-diagnostics 50",
-		"lint:fix": "bunx --bun biome lint apps/web/ --max-diagnostics=50 --fix",
+		"check": "biome check --write apps/web/",
+		"lint": "biome lint apps/web/ --max-diagnostics=50",
+		"lint:fix": "biome lint apps/web/ --max-diagnostics=50 --fix",
+		"types": "tsc --noEmit",
 		"dev": "bun run --filter '*' dev",
 		"build": "bun run --filter '*' build",
 		"check-types": "bun run --filter '*' check-types",
@@ -16,9 +17,8 @@
 		"dev:web": "bun run --filter web dev",
 		"dev:server": "bun run --filter server dev"
 	},
-	"dependencies": {},
-	"devDependencies": {
-		"@biomejs/biome": "^2.2.0"
-	},
-	"packageManager": "bun@1.2.15"
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	]
 }
