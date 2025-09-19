@@ -1,6 +1,3 @@
-// Utils for future plans, from extensive detection
-// to convenient functions to get data
-
 export interface DeviceInfo {
 	isMobile: boolean;
 	isTouch: boolean;
@@ -67,6 +64,7 @@ export const clearDeviceCache = (): void => {
 	lastCheck = 0;
 };
 
+// Still debating if this will be of use
 export const getDeviceClasses = (device?: DeviceInfo) => {
 	const deviceInfo = device || detectDevice();
 

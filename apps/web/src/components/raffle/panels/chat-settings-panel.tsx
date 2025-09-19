@@ -1,3 +1,6 @@
+// Framework Specific/Hooks/Providers/Functional Components
+
+// UI/Styles/UI Components
 import { QuestionIcon } from "@phosphor-icons/react";
 import { useRouteContext } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
@@ -6,7 +9,6 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-// UI/Styles/UI Components
 import {
 	Select,
 	SelectContent,
@@ -22,7 +24,7 @@ import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
 import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
 import { switchToChannel } from "@/lib/channel-switcher";
 // Libs
-import { handleRaffleAction } from "@/lib/raffleActionHandler";
+import { handleRaffleAction } from "@/lib/raffle-action-handler";
 import { authStore } from "@/stores/auth";
 // Types/Store State
 import { chatStore, isThisMyStream, setCurrentChannel } from "@/stores/chat";

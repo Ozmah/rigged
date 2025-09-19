@@ -1,7 +1,9 @@
+// Framework Specific/Hooks/Providers/Functional Components
+
+// UI/Styles/UI Components
 import { CaretDownIcon, EraserIcon } from "@phosphor-icons/react";
 import { useStore } from "@tanstack/react-store";
 import { useEffect, useId } from "react";
-// UI/Styles/UI Components
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { Button } from "@/components/ui/button";
@@ -16,8 +18,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { TooltipInfo } from "@/components/ui/tooltip-info";
 import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
+import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 // Libs
-import { handleRaffleAction } from "@/lib/raffleActionHandler";
+import { handleRaffleAction } from "@/lib/raffle-action-handler";
 // Types/Store State
 import {
 	canStartRaffle,
@@ -38,6 +41,7 @@ interface RafflePanel {
 }
 
 export function RafflePanel({ className = "" }: RafflePanel) {
+	const device = useDeviceDetection();
 	const baseId = useId();
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
 	const isCapturing = useStore(chatStore, (state) => state.isCapturing);
@@ -93,9 +97,11 @@ export function RafflePanel({ className = "" }: RafflePanel) {
 		<>
 			<section className={`space-y-4 ${className}`}>
 				<div className="space-y-4">
-					<div className="">
-						<TypographyH4>Ajustes de Rifa</TypographyH4>
-					</div>
+					{!device.isMobile && (
+						<div className="">
+							<TypographyH4>Ajustes de la Rifa</TypographyH4>
+						</div>
+					)}
 					{/* Key Word */}
 					<div className="">
 						<FloatingInput
