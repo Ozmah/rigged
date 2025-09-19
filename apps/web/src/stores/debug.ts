@@ -6,7 +6,7 @@ interface DebugError {
 	type: string;
 	message: string;
 	recovered: boolean;
-	context?: Record<string, any>;
+	context?: Record<string, unknown>;
 }
 
 // 📊 Performance Metric Interface
@@ -33,7 +33,7 @@ interface ActionHistoryEntry {
 	id: string;
 	timestamp: string;
 	action: string;
-	payload: any;
+	payload: unknown;
 	source: "raffle" | "auth" | "chat" | "ui";
 }
 
@@ -250,14 +250,27 @@ export const addPerformanceMetric = (
 	}));
 };
 
+// 📊 Memory Usage Tracking (Chrome/Chromium only)
+interface PerformanceMemory {
+	usedJSHeapSize: number;
+	totalJSHeapSize: number;
+	jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+	memory?: PerformanceMemory;
+}
+
 export const updateMemoryUsage = () => {
-	if ("memory" in performance) {
-		const memInfo = (performance as any).memory;
+	const perf = performance as PerformanceWithMemory;
+	const memoryInfo = perf.memory;
+
+	if (memoryInfo) {
 		debugStore.setState((state) => ({
 			...state,
 			performance: {
 				...state.performance,
-				memoryUsage: memInfo.usedJSHeapSize,
+				memoryUsage: memoryInfo.usedJSHeapSize,
 			},
 		}));
 	}

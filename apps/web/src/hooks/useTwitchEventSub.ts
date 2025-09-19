@@ -97,13 +97,11 @@ export function useTwitchEventSub() {
 	const scheduleRetry = useCallback((errorMessage: string) => {
 		console.log(`🔄 scheduleRetry called with error: ${errorMessage}`);
 
-		// Clear any existing retry timeout
 		if (retryTimeoutRef.current) {
 			clearTimeout(retryTimeoutRef.current);
 			retryTimeoutRef.current = null;
 		}
 
-		// Check if we should retry
 		if (retryCountRef.current < MAX_RETRIES) {
 			const retryDelay = BASE_RETRY_DELAY * 2 ** retryCountRef.current;
 			retryCountRef.current += 1;
@@ -208,7 +206,7 @@ export function useTwitchEventSub() {
 				isAuthenticated,
 				hasUser: !!user,
 				hasToken: !!accessToken,
-				stack: new Error().stack, // ← ESTO nos dirá quién llama connect()
+				stack: new Error().stack,
 			});
 
 			if (!isAuthenticated || !user || !accessToken) {

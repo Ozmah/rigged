@@ -5,9 +5,13 @@ A simple, fast, and free raffle tool for Twitch streamers. Run real-time chat ra
 ## ✨ Features
 
 - **Real-time chat integration** - Automatically captures chat messages during raffle periods
-- **Multiple winners** - You can draw one or more winners, as many as there are participants
-- **Export results** - Save complete raffle data and winner lists (👷 under construction)
-- **Open Source** - Feel free to use it from your computer or host it on your own server
+- **Multiple winners** - Draw one or more winners from participants
+- **Advanced filtering** - Exclude moderators, subscribers, or VIPs from raffles
+- **Extra tickets** - Give subscribers and VIPs additional entries for better odds
+- **Channel switching** - Moderators can run raffles in channels they moderate
+- **Raffle state persistence** - Your settings and preferences are saved between sessions
+- **Chat message display** - See incoming messages in real-time during raffles
+- **Open Source** - Self-hosted solution with full transparency
 
 ## 🎯 Who is this for?
 
@@ -88,18 +92,20 @@ Small streamers who need a reliable raffle tool without breaking the bank. If yo
 3. **You're ready!** - Start running raffles immediately
 
 ### Running a Raffle
-1. **Keyword** - First add the keyword you want chat to write
-2. **Start capturing** - Click "Start Raffle" when you're ready to begin
-3. **Let viewers participate** - Anyone who chats and writes the keyword during this period is automatically entered
-4. **Stop and prepare** - Click "Next step!" to stop capturing and get ready to select the winner
-5. **Pick a winner** - Press "Pick a winner!" to select the first winner, the button allows you to pick more winners
-6. **Export if needed** - Save the complete participant list and results (🛠️ almost there)
+1. **Set keyword** - Enter the word or phrase participants need to type
+2. **Configure options** - Use advanced settings to exclude certain user types or give extra tickets
+3. **Start raffle** - Click "Start Raffle" to begin capturing chat messages
+4. **Monitor participation** - Watch real-time messages and participant count
+5. **Prepare winners** - Click "Rig Raffle" to stop capturing and prepare for winner selection
+6. **Select winners** - Click "Execute Raffle" to randomly select and announce winners
+7. **Reset for next round** - Clear participants or adjust settings for another raffle
 
 ### Tips for Success
 - **Announce clearly** when raffles start and end
-- **Set clear rules** about participation (one message = one entry, etc.)
-- **Use multiple rounds** 👷 it's planned to add "discarded" to add excitement to the raffle
-- **Export results** to verify fairness if questioned (👷 you know...)
+- **Set clear rules** about participation and eligibility
+- **Use advanced options** to customize raffles for your community
+- **Test settings** with the built-in message generator before going live
+- **Switch channels** if you moderate multiple streams and want to run raffles there
 
 ## ⚙️ Configuration
 
@@ -108,22 +114,29 @@ Create a `.env` file in the root directory:
 
 ```env
 VITE_CLIENT_ID=your_twitch_client_id
+VITE_ANON_DEBUG=1
 ```
+
+- `VITE_CLIENT_ID` - Your Twitch application client ID
+- `VITE_ANON_DEBUG` - Set to `1` to anonymize sensitive data in debug tools (recommended)
 
 ### Twitch Permissions
 The app requests these permissions:
-- `user:read:chat` - To read chat messages for raffles
-- `user:bot` - To connect as a bot user
-- `channel:bot` - To access channel bot features
-- `user:read:email` - For basic profile information
+- `user:read:chat` - Read chat messages during raffle periods
+- `user:bot` - Connect to chat as a bot user
+- `channel:bot` - Access channel-specific bot features
+- `channel:moderate` - Access moderation features for channels you moderate
+- `user:read:email` - Basic profile information for authentication
 
 ## 🛠️ Development
 
 This project uses:
 - **React 19** with TypeScript
-- **TanStack Router** for navigation
+- **TanStack Router** for navigation and routing
 - **TanStack Store** for state management
+- **TanStack DevTools** for debugging and development
 - **Tailwind CSS** for styling
+- **Phosphor Icons** for iconography
 - **Vite** for development and building
 
 ```bash
@@ -164,6 +177,7 @@ bun preview
 ### "Permission denied" errors
 - Make sure you granted all requested permissions during login
 - Try logging out and logging back in
+- Verify you have moderation privileges if trying to switch channels
 
 ### App won't start
 - Ensure Node.js 18+ is installed: `node --version`

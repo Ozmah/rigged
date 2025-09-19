@@ -1,34 +1,30 @@
 // Hooks/Providers/Functional Components
-import { createFileRoute } from "@tanstack/react-router";
-import { useStore } from "@tanstack/react-store";
-import { useEffect, useRef } from "react";
-import { useGitHubVersion } from "@/hooks/useGitHubVersion";
-import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
 
 // UI/Styles/UI Components
 import { TrophyIcon } from "@phosphor-icons/react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useStore } from "@tanstack/react-store";
 import { motion } from "motion/react";
+import { useEffect, useRef } from "react";
+// Types
+import type { StickToBottomContext } from "use-stick-to-bottom";
 import {
 	Conversation,
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { EventSubDiagnostics } from "@/components/debug/eventsub-diagnostics";
-import { ShowRaffleState } from "@/components/debug/show-raffle-state";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { MicroMenuMobile } from "@/components/raffle/micro-menu-mobile";
 import { SettingsPanel } from "@/components/raffle/settings-panel";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
-
-// Types
-import type { StickToBottomContext } from "use-stick-to-bottom";
+import { useGitHubVersion } from "@/hooks/useGitHubVersion";
+import { useTwitchEventSub } from "@/hooks/useTwitchEventSub";
 
 // Libs
 import { detectDevice } from "@/lib/device-detection";
 import { chatStore, MAX_MESSAGES } from "@/stores/chat";
-import { uiStore } from "@/stores/ui";
 
 export const Route = createFileRoute("/_layout/")({
 	component: RaffleComponent,
@@ -56,16 +52,11 @@ function RaffleComponent() {
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 
 	// Debug
-	const isRaffleStateOpen = useStore(
-		uiStore,
-		(state) => state.isRaffleStateOpen,
-	);
 	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
 	const eventSubHook = useTwitchEventSub();
-	const { isConnected, isConnecting, sessionId, subscriptionId } =
-		eventSubHook;
+	const { isConnected, isConnecting } = eventSubHook;
 	const contextRef = useRef<StickToBottomContext>(null);
 
 	// This hook was created to handle the problem caused by the current message storing approach,
@@ -94,23 +85,6 @@ function RaffleComponent() {
 					{version}
 				</Badge>
 			</div>
-
-			{/* Dev Data */}
-			{isRaffleStateOpen && (
-				<>
-					<div className="col-span-3 col-start-1 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-start-2">
-						<ShowRaffleState />
-					</div>
-					<div className="col-span-3 col-start-4 row-span-3 row-start-6 2xl:col-span-2 2xl:col-start-9 2xl:row-span-2 2xl:row-start-5">
-						<EventSubDiagnostics
-							sessionId={sessionId}
-							subscriptionId={subscriptionId}
-							isConnected={isConnected}
-							isConnecting={isConnecting}
-						/>
-					</div>
-				</>
-			)}
 			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
 				{device.isMobile ? <MicroMenuMobile /> : <MicroMenu />}
 			</div>

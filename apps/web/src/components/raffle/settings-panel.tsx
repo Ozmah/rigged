@@ -1,15 +1,16 @@
 // Hooks/Providers/Functional Components
-import { useRouteContext } from "@tanstack/react-router";
-import { useStore } from "@tanstack/react-store";
-import { useEffect, useId } from "react";
 
-// UI/Styles/UI Components
-import { toast } from "sonner";
 import {
 	CaretDownIcon,
 	EraserIcon,
+	QuestionIcon,
 	WarningDiamondIcon,
 } from "@phosphor-icons/react";
+import { useRouteContext } from "@tanstack/react-router";
+import { useStore } from "@tanstack/react-store";
+import { useEffect, useId } from "react";
+// UI/Styles/UI Components
+import { toast } from "sonner";
 import { DisabledOverlay } from "@/components/disabled-overlay";
 import { NumberInput } from "@/components/number-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -42,24 +43,20 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { TooltipInfo } from "@/components/ui/tooltip-info";
-import { TypographyH4 } from "@/components/ui/typography";
-
-// Types
-import type { EventSubSubscriptionsResponse } from "@/lib/twitch-schemas";
-import { createRaffleUiAction } from "@/types/raffle-ui-factory";
-
+import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
 // Libs
 import { switchToChannel } from "@/lib/channel-switcher";
 import { handleRaffleAction } from "@/lib/raffleActionHandler";
+// Types
+import type { EventSubSubscriptionsResponse } from "@/lib/twitch-schemas";
 import { authStore } from "@/stores/auth";
 import {
 	canStartRaffle,
 	chatStore,
-	debugStateButtonText,
-	debugStateButtonVariant,
 	hasWinners,
 	hideRaffleControls,
 	isGeneratingMessages,
+	isThisMyStream,
 	microMenuSelected,
 	primaryButtonText,
 	primaryButtonVariant,
@@ -73,6 +70,7 @@ import {
 	testMessagesButtonText,
 	testMessagesButtonVariant,
 } from "@/stores/chat";
+import { createRaffleUiAction } from "@/types/raffle-ui-factory";
 
 export interface SettingsPanelProps {
 	eventSubHook: {
@@ -88,6 +86,8 @@ export interface SettingsPanelProps {
 	};
 }
 
+// This file will be split soon
+
 export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 	const baseId = useId();
 	const context = useRouteContext({ from: "__root__" });
@@ -95,6 +95,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 	const isCapturing = useStore(chatStore, (state) => state.isCapturing);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
+	const user = useStore(authStore, (state) => state.user);
 	const modedChannels = useStore(authStore, (state) => state.modedChannels);
 
 	// Derived state
@@ -109,10 +110,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 	const secondaryButtonTextState = useStore(secondaryButtonText);
 	const secondaryButtonDisabledState = useStore(secondaryButtonDisabled);
 	const isGeneratingMessagesState = useStore(isGeneratingMessages);
+	const isThisMyStreamState = useStore(isThisMyStream);
 	const testMessagesButtonTextState = useStore(testMessagesButtonText);
 	const testMessagesButtonVariantState = useStore(testMessagesButtonVariant);
-	const debugStateButtonTextState = useStore(debugStateButtonText);
-	const debugStateButtonVariantState = useStore(debugStateButtonVariant);
 	const showSubsExtraTicketsState = useStore(showSubsExtraTickets);
 	const showVipsExtraTicketsState = useStore(showVipsExtraTickets);
 
@@ -130,10 +130,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 			secondaryButtonText.mount(),
 			secondaryButtonDisabled.mount(),
 			isGeneratingMessages.mount(),
+			isThisMyStream.mount(),
 			testMessagesButtonText.mount(),
 			testMessagesButtonVariant.mount(),
-			debugStateButtonText.mount(),
-			debugStateButtonVariant.mount(),
 			showSubsExtraTickets.mount(),
 			showVipsExtraTickets.mount(),
 		];
@@ -148,9 +147,17 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 	const handleChannelSwitch = async (broadcasterId: string) => {
 		console.log("🎯 Canal seleccionado:", broadcasterId);
 
-		const selectedChannel = modedChannels?.find(
+		let selectedChannel = modedChannels?.find(
 			(channel) => channel.broadcaster_id === broadcasterId,
 		);
+
+		if (user?.id === broadcasterId) {
+			selectedChannel = {
+				broadcaster_id: user.id,
+				broadcaster_login: user.login,
+				broadcaster_name: user.display_name,
+			};
+		}
 
 		if (!selectedChannel) {
 			console.error("❌ Canal no encontrado:", broadcasterId);
@@ -163,7 +170,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 
 		const channelFallback = chatStore.state.currentChannel;
 
-		if (authStore.state.user) {
+		if (user) {
 			setCurrentChannel({
 				id: selectedChannel.broadcaster_id,
 				login: selectedChannel.broadcaster_login,
@@ -190,6 +197,23 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 		}
 	};
 
+	// Helper for field IDs
+	const createFieldId = (name: string) => `${baseId}-${name}`;
+
+	// Field IDs
+	const keywordId = createFieldId("keyword");
+	const advancedId = createFieldId("advanced");
+	const ignoreModsId = createFieldId("ignoreMods");
+	const ignoreSubsId = createFieldId("ignoreSubs");
+	const ignoreVipsId = createFieldId("ignoreVips");
+	const caseSensitiveId = createFieldId("caseSensitive");
+	const removeWinnersId = createFieldId("removeWinners");
+	const subsExtraTicketsId = createFieldId("subsExtraTickets");
+	const vipsExtraTicketsId = createFieldId("vipsExtraTickets");
+	const sendRaffleUpdatesId = createFieldId("sendRaffleUpdates");
+	const generateTestMessagesId = createFieldId("generateTestMessages");
+	const clearChatId = createFieldId("clearChat");
+
 	return (
 		<>
 			<div className="@container flex flex-col justify-center space-y-4 rounded-lg bg-card px-4 py-4">
@@ -204,7 +228,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 								{/* Key Word */}
 								<div className="">
 									<FloatingInput
-										id={`${baseId}-keyword`}
+										id={keywordId}
 										label="Palabra clave"
 										value={raffleConfig.keyword}
 										onKeyUp={(
@@ -308,7 +332,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 								<div className="inline-flex space-x-3">
 									<Switch
 										checked={raffleConfig.advanced}
-										id={`${baseId}-advanced`}
+										id={advancedId}
 										onCheckedChange={(checked) =>
 											handleRaffleAction(
 												createRaffleUiAction.toggleAdvanced(
@@ -317,7 +341,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 											)
 										}
 									/>
-									<Label htmlFor="advanced">
+									<Label htmlFor={advancedId}>
 										¿Opciones avanzadas?
 									</Label>
 								</div>
@@ -327,9 +351,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 								<section className="fade-in slide-in-from-top-2 animate-in space-y-4 duration-200 ease-out">
 									<div className="space-y-4">
 										<div>
-											<TypographyH4>
+											<TypographyMuted>
 												Filtros de Mensajes
-											</TypographyH4>
+											</TypographyMuted>
 										</div>
 										<div className="space-y-4">
 											<div className="inline-flex space-x-3">
@@ -337,7 +361,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													checked={
 														raffleConfig.ignoreMods
 													}
-													id={`${baseId}-ignoreMods`}
+													id={ignoreModsId}
 													onCheckedChange={(
 														checked,
 													) =>
@@ -349,7 +373,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													}
 												/>
 												<Label
-													htmlFor="ignoreMods"
+													htmlFor={ignoreModsId}
 													className="flex-shrink-0 text-sm"
 												>
 													¿Ignorar mods?
@@ -365,7 +389,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													checked={
 														raffleConfig.ignoreSubs
 													}
-													id={`${baseId}-ignoreSubs`}
+													id={ignoreSubsId}
 													onCheckedChange={(
 														checked,
 													) =>
@@ -377,7 +401,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													}
 												/>
 												<Label
-													htmlFor="ignoreSubs"
+													htmlFor={ignoreSubsId}
 													className="flex-shrink-0 text-sm"
 												>
 													¿Ignorar suscriptores?
@@ -393,7 +417,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													checked={
 														raffleConfig.ignoreVips
 													}
-													id={`${baseId}-ignoreVips`}
+													id={ignoreVipsId}
 													onCheckedChange={(
 														checked,
 													) =>
@@ -405,7 +429,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													}
 												/>
 												<Label
-													htmlFor="ignoreVips"
+													htmlFor={ignoreVipsId}
 													className="flex-shrink-0 text-sm"
 												>
 													¿Ignorar VIPs?
@@ -421,7 +445,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													checked={
 														raffleConfig.caseSensitive
 													}
-													id={`${baseId}-caseSensitive`}
+													id={caseSensitiveId}
 													onCheckedChange={(
 														checked,
 													) =>
@@ -433,7 +457,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													}
 												/>
 												<Label
-													htmlFor="caseSensitive"
+													htmlFor={caseSensitiveId}
 													className="flex-shrink-0 text-sm"
 												>
 													¿Respetar mayúsculas?
@@ -446,9 +470,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 											</div>
 										</div>
 										<div>
-											<TypographyH4>
+											<TypographyMuted>
 												Configuración de Sorteo
-											</TypographyH4>
+											</TypographyMuted>
 										</div>
 										<div className="space-y-4">
 											<div className="inline-flex space-x-3">
@@ -456,7 +480,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													checked={
 														raffleConfig.removeWinners
 													}
-													id={`${baseId}-removeWinners`}
+													id={removeWinnersId}
 													onCheckedChange={(
 														checked,
 													) =>
@@ -468,7 +492,7 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 													}
 												/>
 												<Label
-													htmlFor="removeWinners"
+													htmlFor={removeWinnersId}
 													className="flex-shrink-0 text-sm"
 												>
 													¿Quitar a los ganadores?
@@ -486,7 +510,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 															checked={
 																raffleConfig.subsExtraTickets
 															}
-															id={`${baseId}-subsExtraTickets`}
+															id={
+																subsExtraTicketsId
+															}
 															onCheckedChange={(
 																checked,
 															) =>
@@ -498,7 +524,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 															}
 														/>
 														<Label
-															htmlFor="subsExtraTickets"
+															htmlFor={
+																subsExtraTicketsId
+															}
 															className="flex-shrink-0 text-sm"
 														>
 															¿Subs con más
@@ -546,7 +574,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 															checked={
 																raffleConfig.vipsExtraTickets
 															}
-															id={`${baseId}-vipsExtraTickets`}
+															id={
+																vipsExtraTicketsId
+															}
 															onCheckedChange={(
 																checked,
 															) =>
@@ -558,7 +588,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 															}
 														/>
 														<Label
-															htmlFor="vipsExtraTickets"
+															htmlFor={
+																vipsExtraTicketsId
+															}
 															className="flex-shrink-0 text-sm"
 														>
 															¿VIPs con más
@@ -613,8 +645,12 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 									Configuraciones Generales
 								</TypographyH4>
 							</div>
-							{/* Key Word */}
 							<div>
+								<TypographyMuted>
+									Canales en los que eres Moderador:
+								</TypographyMuted>
+							</div>
+							<div className="space-y-4">
 								{modedChannels && modedChannels.length > 0 && (
 									<Select onValueChange={handleChannelSwitch}>
 										<SelectTrigger className="w-full">
@@ -641,6 +677,57 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 										</SelectContent>
 									</Select>
 								)}
+								{isThisMyStreamState ? (
+									<div className="inline-flex space-x-3">
+										<Switch
+											checked={
+												raffleConfig.sendRaffleUpdates
+											}
+											id={sendRaffleUpdatesId}
+											onCheckedChange={(checked) =>
+												handleRaffleAction(
+													createRaffleUiAction.toggleRaffleUpdates(
+														checked,
+													),
+												)
+											}
+										/>
+										<Label
+											htmlFor={sendRaffleUpdatesId}
+											className="flex-shrink-0 text-sm"
+										>
+											¿Actualizar chat?
+										</Label>
+										<TooltipInfo
+											icon="QuestionIcon"
+											size={16}
+											content="Mandar actualizaciones de la rifa al chat con tu usuario"
+										/>
+									</div>
+								) : (
+									<div>
+										<Button
+											onClick={
+												user
+													? () =>
+															handleChannelSwitch(
+																user.id,
+															)
+													: undefined
+											}
+											variant="secondary"
+											className="w-full font-bold"
+										>
+											¿Volver a tu canal?
+										</Button>
+									</div>
+								)}
+								<Alert variant="default">
+									<QuestionIcon />
+									<AlertDescription>
+										<p>Cambiar de canal reinicia la rifa</p>
+									</AlertDescription>
+								</Alert>
 							</div>
 						</div>
 					</section>
@@ -648,8 +735,15 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 				{microMenuSelectedState === "dev" && (
 					<section className="my-5 space-y-4 rounded-lg bg-card">
 						<div>
+							<TypographyMuted>
+								Generar mensajes de bots, éstos no se verán
+								reflejados en tu chat real, únicamente aquí para
+								probar las rifas:
+							</TypographyMuted>
+						</div>
+						<div>
 							<Button
-								id={`${baseId}-generateTestMessages`}
+								id={generateTestMessagesId}
 								onClick={() => {
 									if (isGeneratingMessagesState) {
 										handleRaffleAction(
@@ -668,22 +762,14 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 							</Button>
 						</div>
 						<div>
-							<Button
-								id={`${baseId}-showState`}
-								onClick={() => {
-									handleRaffleAction(
-										createRaffleUiAction.toggleDebugState(),
-									);
-								}}
-								variant={debugStateButtonVariantState}
-								className="w-full font-bold"
-							>
-								{debugStateButtonTextState}
-							</Button>
+							<TypographyMuted>
+								Limpiar el chat completamente, ésto NO afecta tu
+								chat en twitch, únicamente en Rigged:
+							</TypographyMuted>
 						</div>
 						<div>
 							<Button
-								id={`${baseId}-clearChat`}
+								id={clearChatId}
 								onClick={() => {
 									handleRaffleAction(
 										createRaffleUiAction.clearChatMessages(),
@@ -700,22 +786,9 @@ export function SettingsPanel({ eventSubHook }: SettingsPanelProps) {
 							<AlertTitle>¡Cuidado!</AlertTitle>
 							<AlertDescription>
 								<p>
-									Estos botones pueden afectar la rifa{" "}
-									<strong>
-										{"<<¡No los uses si no estas seguro!>>"}
-									</strong>
+									Estos botones pueden afectar la rifa, úsalos
+									con precaución.
 								</p>
-								<ul className="list-inside list-disc text-sm">
-									<li>
-										El boton de Generar Mensajes comienza a
-										generar mensajes aleatorios simulados,
-										pero pueden ser considerados en la rifa.
-									</li>
-									<li>
-										El otro botón limpia el chat y esos
-										mensajes no se pueden recuperar
-									</li>
-								</ul>
 							</AlertDescription>
 						</Alert>
 					</section>

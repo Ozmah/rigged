@@ -9,7 +9,6 @@ export interface uiState {
 	haveNotifications: boolean;
 	showCancelDialog: boolean;
 	hideRaffleControls: boolean;
-	isRaffleStateOpen: boolean;
 	error: string | null;
 }
 
@@ -70,7 +69,6 @@ const initialState: uiState = {
 	haveNotifications: false,
 	showCancelDialog: false,
 	hideRaffleControls: false,
-	isRaffleStateOpen: false,
 	error: null,
 	...loadPersistedUiState(),
 };
@@ -113,7 +111,6 @@ export const resetUIState = () => {
 		showCancelDialog: false,
 
 		hideRaffleControls: false,
-		isRaffleStateOpen: false,
 
 		error: null,
 	}));

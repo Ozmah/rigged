@@ -6,6 +6,8 @@ import type { RaffleUiAction } from "@/types/raffle-ui-factory";
  * This is the bridge between user interactions and business logic
  */
 export const handleRaffleAction = (action: RaffleUiAction): void => {
+	// This will essencially become the middleware for all user actions
+
 	switch (action.type) {
 		// Raffle Core Actions
 		case "UPDATE_KEYWORD":
@@ -65,6 +67,10 @@ export const handleRaffleAction = (action: RaffleUiAction): void => {
 			raffleStateActions.toggleVipsExtraTickets(action.payload.enabled);
 			break;
 
+		case "TOGGLE_RAFFLE_UPDATES":
+			raffleStateActions.toggleRaffleUpdates(action.payload.enabled);
+			break;
+
 		case "UPDATE_SUBS_EXTRA_VALUE":
 			raffleStateActions.updateSubsExtraValue(action.payload.value);
 			break;
@@ -80,10 +86,6 @@ export const handleRaffleAction = (action: RaffleUiAction): void => {
 
 		case "STOP_TEST_MESSAGES":
 			raffleStateActions.stopTestMessages();
-			break;
-
-		case "TOGGLE_DEBUG_STATE":
-			raffleStateActions.toggleDebugState();
 			break;
 
 		case "CLEAR_CHAT_MESSAGES":

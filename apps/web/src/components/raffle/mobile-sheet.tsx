@@ -29,8 +29,6 @@ import { handleRaffleAction } from "@/lib/raffleActionHandler";
 import {
 	canStartRaffle,
 	chatStore,
-	debugStateButtonText,
-	debugStateButtonVariant,
 	hasWinners,
 	hideRaffleControls,
 	primaryButtonText,
@@ -82,8 +80,6 @@ export function MobileSettingsSheet({
 			primaryButtonVariant.mount(),
 			secondaryButtonText.mount(),
 			secondaryButtonDisabled.mount(),
-			debugStateButtonText.mount(),
-			debugStateButtonVariant.mount(),
 			showSubsExtraTickets.mount(),
 			showVipsExtraTickets.mount(),
 		];
@@ -95,6 +91,7 @@ export function MobileSettingsSheet({
 		};
 	}, []);
 
+	// A lot of duplicated code, need to break this into composable pieces for both desktop and mobile
 	return (
 		<>
 			<Sheet open={open} onOpenChange={onOpenChange}>
@@ -551,82 +548,6 @@ export function MobileSettingsSheet({
 
 						{/* Divider */}
 						<div className="border-border border-t" />
-
-						{/* === DEV TOOLS SECTION === */}
-						{/* Considering removing dev tools from mobile version */}
-						{/* <section className="space-y-4">
-							<TypographyH4>
-								Herramientas de Desarrollo
-							</TypographyH4>
-
-							<div className="space-y-3">
-								<Button
-									onClick={() => {
-										if (isGeneratingMessagesState) {
-											handleRaffleAction(
-												createRaffleUiAction.stopTestMessages(),
-											);
-										} else {
-											handleRaffleAction(
-												createRaffleUiAction.startTestMessages(),
-											);
-										}
-									}}
-									variant={testMessagesButtonVariantState}
-									className="w-full"
-								>
-									{testMessagesButtonTextState}
-								</Button>
-
-								<Button
-									onClick={() => {
-										handleRaffleAction(
-											createRaffleUiAction.toggleDebugState(),
-										);
-									}}
-									variant={debugStateButtonVariantState}
-									className="w-full"
-								>
-									{debugStateButtonTextState}
-								</Button>
-
-								<Button
-									onClick={() => {
-										handleRaffleAction(
-											createRaffleUiAction.clearChatMessages(),
-										);
-									}}
-									variant="destructive"
-									className="w-full"
-								>
-									Limpiar Chat
-								</Button>
-							</div>
-
-							<Alert variant="destructive">
-								<WarningDiamondIcon className="h-4 w-4" />
-								<AlertTitle>¡Cuidado!</AlertTitle>
-								<AlertDescription className="text-sm">
-									<p className="mb-2">
-										Estos botones pueden afectar la rifa{" "}
-										<strong>
-											¡No los uses si no estás seguro!
-										</strong>
-									</p>
-									<ul className="list-inside list-disc space-y-1 text-xs">
-										<li>
-											Generar Mensajes crea mensajes
-											simulados que pueden participar en
-											la rifa
-										</li>
-										<li>
-											Limpiar Chat elimina todos los
-											mensajes permanentemente
-										</li>
-									</ul>
-								</AlertDescription>
-							</Alert>
-						</section> */}
 					</div>
 				</SheetContent>
 			</Sheet>
