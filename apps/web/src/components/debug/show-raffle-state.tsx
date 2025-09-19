@@ -48,12 +48,12 @@ export function ShowRaffleState({ className = "" }: ShowRaffleStateProps) {
 	};
 
 	return (
-		<div className={`col-span-20 bg-background ${className}`}>
+		<div className={`bg-indigo-900`}>
 			<div className="p-4">
 				<h3 className="mb-2 font-semibold text-muted-foreground text-sm">
 					Datos de desarrollador
 				</h3>
-				<pre className="overflow-auto rounded border border-slate-700 bg-slate-950 p-4 font-mono text-slate-300 text-xs lg:max-h-[30dvh] 2xl:max-h-[40dvh]">
+				<pre className="overflow-auto rounded border border-slate-700 bg-slate-950 p-4 font-mono text-slate-300 text-xs">
 					<code
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: Safe controlled JSON syntax highlighting for diagnostics
 						dangerouslySetInnerHTML={{
