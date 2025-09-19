@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import type { SettingsPanelProps } from "@/components/raffle/settings-panel";
+import type { RiggedSettingsProps } from "@/components/raffle/rigged-settings";
 import { resetChatState, setChannelSwitching } from "@/stores/chat";
 import { resetUIState } from "@/stores/ui";
 import type { TwitchAPI } from "./twitch-api-client";
@@ -11,7 +11,7 @@ import type { TwitchAPI } from "./twitch-api-client";
 export const switchToChannel = async (
 	broadcasterId: string,
 	broadcasterName: string,
-	props: SettingsPanelProps,
+	props: RiggedSettingsProps,
 	twitchAPI: TwitchAPI,
 ) => {
 	console.log("🔄 Starting channel switch to:", {

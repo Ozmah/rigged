@@ -15,7 +15,7 @@ import {
 } from "@/components/ai-elements/conversation";
 import { MicroMenu } from "@/components/raffle/micro-menu";
 import { MicroMenuMobile } from "@/components/raffle/micro-menu-mobile";
-import { SettingsPanel } from "@/components/raffle/settings-panel";
+import { RiggedSettings } from "@/components/raffle/rigged-settings";
 import { Badge } from "@/components/ui/badge";
 import { ServerStatus } from "@/components/ui/server-status";
 import { TypographyH4 } from "@/components/ui/typography";
@@ -39,6 +39,7 @@ function RaffleComponent() {
 
 	// Device detection (This is a simple function,
 	// NOT reactive, user changes window size and we're screwed)
+	// This will be fixed in a future version
 	const device = detectDevice();
 	// Chat state
 	const messages = useStore(chatStore, (state) => state.messages);
@@ -90,7 +91,7 @@ function RaffleComponent() {
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && (
-					<SettingsPanel eventSubHook={eventSubHook} />
+					<RiggedSettings eventSubHook={eventSubHook} />
 				)}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">

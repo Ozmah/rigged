@@ -13,7 +13,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useGitHubVersion } from "@/hooks/useGitHubVersion";
-
 // Libs
 import { authStore, setAuthError } from "@/stores/auth";
 
@@ -128,7 +127,10 @@ function LoginComponent() {
 							<div className="mt-6 text-center text-muted-foreground text-xs">
 								<p>Al conectar autorizas a Rigged a:</p>
 								<p>• Leer tu chat para sorteos</p>
-								<p>• Obtener tu información básica</p>
+								<p>
+									• Obtener tu información básica sólo dentro
+									de la aplicación, no se almacena
+								</p>
 							</div>
 						</CardContent>
 					</Card>
