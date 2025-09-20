@@ -7,6 +7,9 @@ import {
 	TwitchModeratedChannelsResponseSchema,
 	type TwitchUser,
 	TwitchUsersResponseSchema,
+	type SendChatMessage,
+	type SendChatMessageResponse,
+	SendChatMessageResponseSchema
 } from "./twitch-schemas";
 
 export interface TwitchAPIConfig {
@@ -40,11 +43,12 @@ export interface AuthError {
 }
 
 export const RIGGED_SCOPES = [
-	"user:read:chat",
-	"user:bot",
-	"user:read:moderated_channels",
-	"channel:bot",
 	"user:read:email",
+	"user:read:chat",
+	"user:write:chat",
+	"user:read:moderated_channels",
+	"user:bot",
+	"channel:bot",
 ] as const;
 
 export interface EventSubMessage {
@@ -124,7 +128,9 @@ export interface EventSubChatMessage {
 		| "text"
 		| "channel_points_highlighted"
 		| "channel_points_sub_only"
-		| "user_intro";
+		| "user_intro"
+		| "power_ups_message_effect"
+		| "power_ups_gigantified_emote";
 	cheer?: {
 		bits: number;
 	};
@@ -491,42 +497,52 @@ export class TwitchAPI {
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => ({}));
 
-			if (endpoint === "/eventsub/subscriptions") {
-				switch (response.status) {
-					case 400:
-						throw new Error(
-							`EventSub Bad Request (400): ${errorData.message || "Invalid subscription parameters"}`,
-						);
-					case 401:
-						throw new Error(
-							`EventSub Unauthorized (401): ${errorData.message || "Invalid or expired access token"}`,
-						);
-					case 403:
-						throw new Error(
-							`EventSub Forbidden (403): ${errorData.message || "Insufficient scopes or permissions"}`,
-						);
-					case 409:
-						throw new Error(
-							`EventSub Conflict (409): ${errorData.message || "Subscription already exists"}`,
-						);
-					case 429:
-						throw new Error(
-							`EventSub Rate Limited (429): ${errorData.message || "Too many requests"}`,
-						);
-					default:
-						throw new Error(
-							`EventSub API Error (${response.status}): ${response.statusText}`,
-						);
-				}
-			}
-
-			throw new Error(
-				`Twitch API Error: ${response.status} ${response.statusText}`,
-			);
+			throw this.createApiError(endpoint, response.status, errorData);
 		}
 
 		return response.json();
 	}
+
+	private createApiError(endpoint: string, status: number, errorData: any): Error {
+		const endpointName = this.getEndpointName(endpoint);
+
+		const statusMessages: Record<number, string> = {
+			400: "Bad Request: Invalid parameters",
+			401: "Unauthorized: Invalid or expired token",
+			403: "Forbidden: Insufficient permissions",
+			404: "Not Found: Resource doesn't exist",
+			409: "Conflict: Resource already exists",
+			422: "Unprocessable Entity: Invalid data",
+			429: "Rate Limited: Too many requests",
+			500: "Internal Server Error: Server issues",
+		};
+
+		const message = statusMessages[status] || `API Error (${status})`;
+		const errorMessage = errorData.message || "";
+
+		return new Error(`${endpointName} ${message}: ${errorMessage}`);
+	}
+
+	private getEndpointName(endpoint: string): string {
+		const endpointNames: Record<string, string> = {
+			"/eventsub/subscriptions": "EventSub",
+			"/chat/messages": "Chat Message",
+			"/users": "Users",
+			"/moderation/channels": "Moderation Channels",
+			"/chat/chatters": "Chat Chatters",
+			"/chat/emotes": "Chat Emotes",
+			"/chat/emotes/global": "Global Emotes",
+			"/chat/badges": "Chat Badges",
+			"/chat/badges/global": "Global Badges",
+			"/chat/emotes/set": "Emote Sets",
+			"/subscriptions/user": "User Subscription",
+			"/shared_chat/session": "Shared Chat Session",
+			"/moderation/bans": "Moderation Bans",
+		};
+
+		return endpointNames[endpoint] || "Twitch API";
+	}
+
 
 	// ================================
 	// 👤 USER & CHANNEL METHODS
@@ -610,6 +626,47 @@ export class TwitchAPI {
 		max_total_cost: number;
 	}> {
 		return this.request("/eventsub/subscriptions");
+	}
+
+	/**
+	* Sends a message to a broadcaster's chat room
+	*
+	* Requires user:write:chat scope. When using app access token, additionally requires
+	* user:bot scope from chatting user and either channel:bot scope from broadcaster
+	* or moderator status.
+	*
+	* @param broadcasterId The ID of the broadcaster whose chat room the message will be sent to
+	* @param senderId The ID of the user sending the message. Must match the user ID in the access token
+	* @param message The message to send. Limited to 500 characters maximum. Can include emoticons using their names (case sensitive, no colons)
+	* @param replyId Optional ID of the chat message being replied to
+	* @param sourceOnly Whether to send only to source channel during shared chat session. Defaults to true. Only works with app access tokens
+	* @returns Promise resolving to message result containing message_id, is_sent status, and optional drop_reason
+	* @throws Error when message fails validation, user lacks permissions, or API request fails
+	*/
+	async sendChatMessage(
+		broadcasterId: string, 
+		senderId: string, 
+		message: string, 
+		replyId?: string, 
+		sourceOnly = true,
+	): Promise<SendChatMessage> {
+		const params = {
+			broadcaster_id: broadcasterId,
+			sender_id: senderId,
+			message: message,
+			reply_parent_message_id: replyId,
+			for_source_only: sourceOnly,
+		};
+
+		const response = await this.post("/chat/messages", params);
+		const validatedResponse =
+			SendChatMessageResponseSchema.parse(response);
+		
+		if (validatedResponse.data.length === 0) {
+			throw new Error("No user data returned from Twitch API");
+		}
+
+		return validatedResponse.data[0];
 	}
 
 	/**

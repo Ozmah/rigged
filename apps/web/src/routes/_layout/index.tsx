@@ -46,6 +46,8 @@ function RaffleComponent() {
 	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
+	// DO NOT CALL THIS HOOK ANYWHERE ELSE, 
+	// its constructor creates a new subscription
 	const eventSubHook = useTwitchEventSub();
 	const { isConnected, isConnecting } = eventSubHook;
 	const contextRef = useRef<StickToBottomContext>(null);
@@ -91,7 +93,7 @@ function RaffleComponent() {
 				</Badge>
 			</div>
 			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
-				{device.isMobile ? <MicroMenuMobile /> : <MicroMenu />}
+				{device.isMobile ? <MicroMenuMobile eventSubHook={eventSubHook} /> : <MicroMenu />}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && (
