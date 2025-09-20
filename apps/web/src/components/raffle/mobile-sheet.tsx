@@ -3,6 +3,7 @@ import { useStore } from "@tanstack/react-store";
 import { useEffect } from "react";
 import { DevSettingsPanel } from "@/components/raffle/panels/dev-settings-panel";
 import { RafflePanel } from "@/components/raffle/panels/raffle-panel";
+import { ChatSettingsPanel } from "./panels/chat-settings-panel";
 // UI/Styles/UI Components
 import {
 	AlertDialog,
@@ -21,6 +22,7 @@ import { handleRaffleAction } from "@/lib/raffle-action-handler";
 import {
 	canStartRaffle,
 	chatStore,
+	isThisMyStream,
 	hasWinners,
 	hideRaffleControls,
 	primaryButtonText,
@@ -32,27 +34,32 @@ import {
 	showVipsExtraTickets,
 } from "@/stores/chat";
 import { createRaffleUiAction } from "@/types/raffle-ui-factory";
+import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
 
 interface MobileSettingsSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	eventSubHook: TwitchEventSubHookConstructor;
 }
 
 export function MobileSettingsSheet({
 	open,
 	onOpenChange,
+	eventSubHook
 }: MobileSettingsSheetProps) {
 	const participants = useStore(chatStore, (state) => state.participants);
 
 	// Derived state
 	const hasWinnersState = useStore(hasWinners);
 	const showCancelDialogState = useStore(showCancelDialog);
+	const isThisMyStreamState = useStore(isThisMyStream);
 
 	// Mount all derived state
 	useEffect(() => {
 		const unsubscribers = [
 			canStartRaffle.mount(),
 			hasWinners.mount(),
+			isThisMyStream.mount(),
 			showCancelDialog.mount(),
 			hideRaffleControls.mount(),
 			primaryButtonText.mount(),
@@ -81,6 +88,9 @@ export function MobileSettingsSheet({
 					<div className="space-y-6 py-4">
 						{/* Raffle Panel */}
 						<RafflePanel />
+						<div className="border-border border-t" />
+						{/* Chat Settings Panel */}
+						<ChatSettingsPanel eventSubHook={eventSubHook} />
 						<div className="border-border border-t" />
 						{/* Dev Settings Panel */}
 						<DevSettingsPanel />
