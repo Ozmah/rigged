@@ -1,8 +1,10 @@
 import { Derived, Store } from "@tanstack/store";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
-import { authStore } from "./auth";
-import { uiStore, updateUiState } from "./ui";
+import { authStore } from "@/stores/auth";
+import { uiStore, updateUiState } from "@/stores/ui";
+// Types
+import type { TwitchChannel } from "@/types/twitch-schemas";
 
 export const MAX_MESSAGES = 100;
 export const STATE_CONNECTION_STATUS_CONNECTED = "connected";
@@ -97,11 +99,7 @@ export interface ChatState {
 	connectionStatus: ConnectionStatus;
 	connectionError: string | null;
 	isSwitchingChannel: boolean;
-	currentChannel: {
-		id: string;
-		login: string;
-		name: string;
-	} | null;
+	currentChannel?: TwitchChannel;
 
 	// Chat messages
 	messages: ChatMessage[];
@@ -238,7 +236,7 @@ const initialState: ChatState = {
 	connectionStatus: CONNECTION_STATUS.DISCONNECTED,
 	connectionError: null,
 	isSwitchingChannel: false,
-	currentChannel: null,
+	currentChannel: undefined,
 
 	messages: [],
 	maxMessages: MAX_MESSAGES,
@@ -308,6 +306,9 @@ export const setConnectionStatus = (
 
 /**
  * Processes EventSub chat message and adds to store
+ *
+ * Checks amount of messages stored and removes overflow, new messages are stored,
+ *
  * @param eventMessage Raw EventSub message
  */
 export const addChatMessage = (eventMessage: EventSubChatMessage) => {
@@ -324,6 +325,7 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 			id: badge.id,
 			info: badge.info,
 		})),
+		// This will eventually support all types of messages
 		messageType:
 			eventMessage.message_type === "text"
 				? "text"
@@ -344,24 +346,25 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 			newMessages.splice(0, newMessages.length - state.maxMessages);
 		}
 
-		if (state.raffleConfig.advanced) {
-			const isMessageParticipating =
-				state.isCapturing &&
-				checkMessageRaffleParticipation(
+		if (state.isCapturing) {
+			if (state.raffleConfig.advanced) {
+				const isMessageParticipating = checkMessageRaffleParticipation(
 					message.content,
 					state.raffleConfig,
 				);
 
-			const isUserParticipating =
-				state.isCapturing &&
-				checkUserRaffleParticipation(message, state.raffleConfig);
+				const isUserParticipating = checkUserRaffleParticipation(
+					message,
+					state.raffleConfig,
+				);
 
-			message.isParticipant =
-				isMessageParticipating && isUserParticipating;
-		} else {
-			message.isParticipant =
-				state.raffleConfig.keyword.trim().toLowerCase() ===
-				message.content.trim().toLowerCase();
+				message.isParticipant =
+					isMessageParticipating && isUserParticipating;
+			} else {
+				message.isParticipant =
+					state.raffleConfig.keyword.trim().toLowerCase() ===
+					message.content.trim().toLowerCase();
+			}
 		}
 
 		const newParticipants = [...state.participants];
@@ -380,6 +383,14 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 					badges: message.badges.map((b) => b.setId),
 				};
 				newParticipants.push(participant);
+
+				if (chatStore.state.currentChannel && authStore.state.user) {
+					authStore.state.TwitchAPI?.sendChatMessage(
+						chatStore.state.currentChannel.broadcaster_id,
+						authStore.state.user.id,
+						`[Rigged Bot] ${participant.displayName} ahora está participando`,
+					);
+				}
 			}
 		}
 
@@ -647,6 +658,15 @@ export const startRaffleCapture = () => {
 			uniqueParticipants: 0,
 		},
 	}));
+
+	// Message format will change drastically, this is the first iteration
+	if (chatStore.state.currentChannel && authStore.state.user) {
+		authStore.state.TwitchAPI?.sendChatMessage(
+			chatStore.state.currentChannel.broadcaster_id,
+			authStore.state.user.id,
+			`[Rigged Bot] ¡Rifa iniciada! Escribe "${chatStore.state.raffleConfig.keyword}"`,
+		);
+	}
 };
 
 /**
@@ -668,6 +688,14 @@ export const rigTheRaffle = () => {
 		isCapturing: false,
 		isRaffleRigged: true,
 	}));
+
+	if (chatStore.state.currentChannel && authStore.state.user) {
+		authStore.state.TwitchAPI?.sendChatMessage(
+			chatStore.state.currentChannel.broadcaster_id,
+			authStore.state.user.id,
+			"[Rigged Bot] ¡Ni uno más! Ya vamos a elegir al ganador",
+		);
+	}
 };
 
 /**
@@ -684,6 +712,9 @@ export const executeRaffle = (): RaffleParticipant => {
 		// Edge case, needs to be handled gracefully
 		// If all participants are winners and
 		// removeWinners is active (This is not handled)
+
+		// Dervied state with the .filter((p) => !p.isWinner)
+		// logic to block the "pick a winner" button
 		if (availableParticipants.length === 0) {
 			return state;
 		}
@@ -699,6 +730,13 @@ export const executeRaffle = (): RaffleParticipant => {
 	});
 
 	console.log(chatStore.state.winners.at(-1));
+	if (chatStore.state.currentChannel && authStore.state.user) {
+		authStore.state.TwitchAPI?.sendChatMessage(
+			chatStore.state.currentChannel.broadcaster_id,
+			authStore.state.user.id,
+			`[Rigged Bot] ¡Felicidades! Ganador: ${chatStore.state.winners.at(-1)?.displayName}`,
+		);
+	}
 
 	// biome-ignore lint/style/noNonNullAssertion: Need to make this clearer and avoid using !
 	return chatStore.state.winners.at(-1)!;
@@ -875,13 +913,7 @@ export const setChannelSwitching = (isSwitching: boolean) => {
 /**
  * Sets the current channel we're connected to
  */
-export const setCurrentChannel = (
-	channel: {
-		id: string;
-		login: string;
-		name: string;
-	} | null,
-) => {
+export const setCurrentChannel = (channel: TwitchChannel) => {
 	chatStore.setState((state) => ({
 		...state,
 		currentChannel: channel,
@@ -944,13 +976,9 @@ export const raffleStateActions: RaffleStateActions = {
 	startRaffle: () => {
 		updateUiState({ hideRaffleControls: true });
 		startRaffleCapture();
-		toast.success("🎲 Captura iniciada", {
+		toast.success("Comenzamos!", {
 			description: `Capturando participantes con la palabra "${chatStore.state.raffleConfig.keyword}"`,
 			duration: 3000,
-			cancel: {
-				label: "X",
-				onClick: () => console.log("Temp close"),
-			},
 		});
 	},
 
@@ -961,7 +989,7 @@ export const raffleStateActions: RaffleStateActions = {
 		} else {
 			updateUiState({ hideRaffleControls: false });
 			stopRaffleCapture();
-			toast.info("⏹️ Rifa Cancelada", {
+			toast.info("Rifa Cancelada", {
 				duration: 3000,
 			});
 		}
@@ -976,7 +1004,7 @@ export const raffleStateActions: RaffleStateActions = {
 		console.log("Raffle winner:", winner);
 
 		if (winner) {
-			toast.success("🎉 ¡Felicidades!", {
+			toast.success("¡Felicidades!", {
 				description: `Ganador: ${winner.displayName}`,
 				duration: 8000,
 				closeButton: true,
@@ -1042,7 +1070,7 @@ export const raffleStateActions: RaffleStateActions = {
 	/*** Dev Tools Actions ***/
 	startTestMessages: () => {
 		startTestMessageGeneration();
-		toast.success("🎲 Generando Mensajes", {
+		toast.success("Generando Mensajes", {
 			description: "Creando mensajes para simular rifas",
 			duration: 3000,
 			closeButton: true,
@@ -1051,7 +1079,7 @@ export const raffleStateActions: RaffleStateActions = {
 
 	stopTestMessages: () => {
 		stopTestMessageGeneration();
-		toast.success("🎲 Mensajes detenidos", {
+		toast.info("Mensajes detenidos", {
 			duration: 3000,
 			closeButton: true,
 		});
@@ -1076,7 +1104,7 @@ export const raffleStateActions: RaffleStateActions = {
 		resetRaffle();
 		updateUiState({ hideRaffleControls: false });
 		const raffleStatus = raffleWinners.length ? "Terminada" : "Cancelada";
-		toast.info(`⏹️ Rifa ${raffleStatus}`, {
+		toast.info(`Rifa ${raffleStatus}`, {
 			duration: 3000,
 			closeButton: true,
 		});
@@ -1092,7 +1120,6 @@ export const raffleStateActions: RaffleStateActions = {
 
 	/*** Keyboard Actions ***/
 	keywordEnterPressed: () => {
-		// Use derived state instead of inline computation
 		if (canStartRaffle.state) {
 			raffleStateActions.startRaffle();
 		}
@@ -1125,9 +1152,15 @@ export const canStartRaffle = new Derived({
 
 export const isThisMyStream = new Derived({
 	fn: () => {
-		if (!authStore.state.user?.id || !chatStore.state.currentChannel?.id)
+		if (
+			!authStore.state.user?.id ||
+			!chatStore.state.currentChannel?.broadcaster_id
+		)
 			return false;
-		return authStore.state.user.id === chatStore.state.currentChannel.id;
+		return (
+			authStore.state.user.id ===
+			chatStore.state.currentChannel.broadcaster_id
+		);
 	},
 	deps: [authStore, chatStore],
 });
@@ -1166,6 +1199,10 @@ export const showVipsExtraTickets = new Derived({
 });
 
 /*** Button state ***/
+// This might need to change based on the bug of the mobile sheet
+// at the moment this still needs testing such as starting a raffle
+// on mobile, exit de menu, wait for participants to happen and observe
+// this particular state.
 export const primaryButtonText = new Derived({
 	fn: () => {
 		const state = chatStore.state;
@@ -1221,11 +1258,6 @@ export const secondaryButtonDisabled = new Derived({
 // pieces, so bear with me.
 
 /*** UI state (combining chat and ui stores) ***/
-export const showDropdownMenu = new Derived({
-	fn: () => chatStore.state.isCapturing && hasParticipants.state,
-	deps: [chatStore, hasParticipants],
-});
-
 export const showCancelDialog = new Derived({
 	fn: () => uiStore.state.showCancelDialog,
 	deps: [uiStore],

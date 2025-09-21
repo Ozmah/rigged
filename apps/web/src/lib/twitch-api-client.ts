@@ -2,15 +2,14 @@ import { authStore, clearAuth } from "@/stores/auth";
 import {
 	type ChattersResponse,
 	type ModeratedChannelsResponse,
+	type SendChatMessage,
+	SendChatMessageResponseSchema,
 	type TokenValidation,
 	TokenValidationSchema,
 	TwitchModeratedChannelsResponseSchema,
 	type TwitchUser,
 	TwitchUsersResponseSchema,
-	type SendChatMessage,
-	type SendChatMessageResponse,
-	SendChatMessageResponseSchema
-} from "./twitch-schemas";
+} from "../types/twitch-schemas";
 
 export interface TwitchAPIConfig {
 	baseURL: string;
@@ -41,6 +40,14 @@ export interface AuthError {
 	message: string;
 	details?: unknown;
 }
+
+export type MessageType =
+	| "text"
+	| "channel_points_highlighted"
+	| "channel_points_sub_only"
+	| "user_intro"
+	| "power_ups_message_effect"
+	| "power_ups_gigantified_emote";
 
 export const RIGGED_SCOPES = [
 	"user:read:email",
@@ -124,13 +131,7 @@ export interface EventSubChatMessage {
 		id: string;
 		info: string;
 	}>;
-	message_type:
-		| "text"
-		| "channel_points_highlighted"
-		| "channel_points_sub_only"
-		| "user_intro"
-		| "power_ups_message_effect"
-		| "power_ups_gigantified_emote";
+	message_type: MessageType;
 	cheer?: {
 		bits: number;
 	};
@@ -146,6 +147,13 @@ export interface EventSubChatMessage {
 		thread_user_login: string;
 	};
 	channel_points_custom_reward_id?: string;
+}
+
+interface TwitchApiErrorData {
+	message?: string;
+	error?: string;
+	error_description?: string;
+	[key: string]: unknown;
 }
 
 export class TwitchAPI {
@@ -503,7 +511,11 @@ export class TwitchAPI {
 		return response.json();
 	}
 
-	private createApiError(endpoint: string, status: number, errorData: any): Error {
+	private createApiError(
+		endpoint: string,
+		status: number,
+		errorData: unknown,
+	): Error {
 		const endpointName = this.getEndpointName(endpoint);
 
 		const statusMessages: Record<number, string> = {
@@ -517,10 +529,41 @@ export class TwitchAPI {
 			500: "Internal Server Error: Server issues",
 		};
 
-		const message = statusMessages[status] || `API Error (${status})`;
-		const errorMessage = errorData.message || "";
+		const baseMessage = statusMessages[status] || `API Error (${status})`;
 
-		return new Error(`${endpointName} ${message}: ${errorMessage}`);
+		// Message extraction
+		let errorMessage = "";
+
+		if (errorData && typeof errorData === "object") {
+			const typedErrorData = errorData as TwitchApiErrorData;
+			errorMessage =
+				typedErrorData.message ||
+				typedErrorData.error ||
+				typedErrorData.error_description ||
+				"";
+		} else if (typeof errorData === "string") {
+			errorMessage = errorData;
+		}
+
+		// Fallback to JSON if no readable message
+		if (!errorMessage && errorData) {
+			errorMessage = JSON.stringify(errorData);
+		}
+
+		const fullMessage = errorMessage
+			? `${endpointName} ${baseMessage}: ${errorMessage}`
+			: `${endpointName} ${baseMessage}`;
+
+		const error = new Error(fullMessage);
+
+		// Add debugging properties with proper typing
+		Object.assign(error, {
+			status,
+			endpoint,
+			errorData,
+		});
+
+		return error;
 	}
 
 	private getEndpointName(endpoint: string): string {
@@ -542,7 +585,6 @@ export class TwitchAPI {
 
 		return endpointNames[endpoint] || "Twitch API";
 	}
-
 
 	// ================================
 	// 👤 USER & CHANNEL METHODS
@@ -629,47 +671,6 @@ export class TwitchAPI {
 	}
 
 	/**
-	* Sends a message to a broadcaster's chat room
-	*
-	* Requires user:write:chat scope. When using app access token, additionally requires
-	* user:bot scope from chatting user and either channel:bot scope from broadcaster
-	* or moderator status.
-	*
-	* @param broadcasterId The ID of the broadcaster whose chat room the message will be sent to
-	* @param senderId The ID of the user sending the message. Must match the user ID in the access token
-	* @param message The message to send. Limited to 500 characters maximum. Can include emoticons using their names (case sensitive, no colons)
-	* @param replyId Optional ID of the chat message being replied to
-	* @param sourceOnly Whether to send only to source channel during shared chat session. Defaults to true. Only works with app access tokens
-	* @returns Promise resolving to message result containing message_id, is_sent status, and optional drop_reason
-	* @throws Error when message fails validation, user lacks permissions, or API request fails
-	*/
-	async sendChatMessage(
-		broadcasterId: string, 
-		senderId: string, 
-		message: string, 
-		replyId?: string, 
-		sourceOnly = true,
-	): Promise<SendChatMessage> {
-		const params = {
-			broadcaster_id: broadcasterId,
-			sender_id: senderId,
-			message: message,
-			reply_parent_message_id: replyId,
-			for_source_only: sourceOnly,
-		};
-
-		const response = await this.post("/chat/messages", params);
-		const validatedResponse =
-			SendChatMessageResponseSchema.parse(response);
-		
-		if (validatedResponse.data.length === 0) {
-			throw new Error("No user data returned from Twitch API");
-		}
-
-		return validatedResponse.data[0];
-	}
-
-	/**
 	 * Creates EventSub subscription for chat messages
 	 */
 	async createChatMessageSubscription(
@@ -700,6 +701,46 @@ export class TwitchAPI {
 		return this.post<{
 			data: Array<{ id: string; status: string; type: string }>;
 		}>("/eventsub/subscriptions", subscriptionData);
+	}
+
+	/**
+	 * Sends a message to a broadcaster's chat room
+	 *
+	 * Requires user:write:chat scope. When using app access token, additionally requires
+	 * user:bot scope from chatting user and either channel:bot scope from broadcaster
+	 * or moderator status.
+	 *
+	 * @param broadcasterId The ID of the broadcaster whose chat room the message will be sent to
+	 * @param senderId The ID of the user sending the message. Must match the user ID in the access token
+	 * @param message The message to send. Limited to 500 characters maximum. Can include emoticons using their names (case sensitive, no colons)
+	 * @param replyId Optional ID of the chat message being replied to
+	 * @param sourceOnly Whether to send only to source channel during shared chat session. Defaults to true. Only works with App Access tokens, we have User Access tokens.
+	 * @returns Promise resolving to message result containing message_id, is_sent status, and optional drop_reason
+	 * @throws Error when message fails validation, user lacks permissions, or API request fails
+	 */
+	async sendChatMessage(
+		broadcasterId: string,
+		senderId: string,
+		message: string,
+		replyId?: string,
+		// sourceOnly = true,
+	): Promise<SendChatMessage> {
+		const params = {
+			broadcaster_id: broadcasterId,
+			sender_id: senderId,
+			message: message,
+			reply_parent_message_id: replyId,
+			// for_source_only: sourceOnly,
+		};
+
+		const response = await this.post("/chat/messages", params);
+		const validatedResponse = SendChatMessageResponseSchema.parse(response);
+
+		if (validatedResponse.data.length === 0) {
+			throw new Error("No user data returned from Twitch API");
+		}
+
+		return validatedResponse.data[0];
 	}
 
 	/**

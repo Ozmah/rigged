@@ -105,15 +105,19 @@ export type ModeratedChannelsResponse = z.infer<
 export const SendChatMessageSchema = z.object({
 	message_id: z.string(),
 	is_sent: z.boolean(),
-	drop_reason: z.optional(z.object({
-		code: z.string(),
-		message: z.string(),
-	})),
-})
+	drop_reason: z.nullable(
+		z.object({
+			code: z.string(),
+			message: z.string(),
+		}),
+	),
+});
 
 export const SendChatMessageResponseSchema = z.object({
 	data: z.array(SendChatMessageSchema),
 });
 
 export type SendChatMessage = z.infer<typeof SendChatMessageSchema>;
-export type SendChatMessageResponse = z.infer<typeof SendChatMessageResponseSchema>;
+export type SendChatMessageResponse = z.infer<
+	typeof SendChatMessageResponseSchema
+>;

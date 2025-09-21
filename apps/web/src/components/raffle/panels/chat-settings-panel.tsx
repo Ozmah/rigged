@@ -87,9 +87,9 @@ export function ChatSettingsPanel({
 
 		if (user) {
 			setCurrentChannel({
-				id: selectedChannel.broadcaster_id,
-				login: selectedChannel.broadcaster_login,
-				name: selectedChannel.broadcaster_name,
+				broadcaster_id: selectedChannel.broadcaster_id,
+				broadcaster_login: selectedChannel.broadcaster_login,
+				broadcaster_name: selectedChannel.broadcaster_name,
 			});
 		}
 
@@ -104,9 +104,9 @@ export function ChatSettingsPanel({
 			console.error("❌ Error en cambio de canal:", error);
 			if (channelFallback) {
 				setCurrentChannel({
-					id: channelFallback.id,
-					login: channelFallback.login,
-					name: channelFallback.name,
+					broadcaster_id: channelFallback.broadcaster_id,
+					broadcaster_login: channelFallback.broadcaster_login,
+					broadcaster_name: channelFallback.broadcaster_name,
 				});
 			}
 		}

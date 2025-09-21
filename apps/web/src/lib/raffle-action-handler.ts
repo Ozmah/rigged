@@ -7,6 +7,8 @@ import type { RaffleUiAction } from "@/types/raffle-ui-factory";
  */
 export const handleRaffleAction = (action: RaffleUiAction): void => {
 	// This will essencially become the middleware for all user actions
+	// This might be the place for the logger that will go into devtools
+	// We can catch all actions related to the app UI
 
 	switch (action.type) {
 		// Raffle Core Actions

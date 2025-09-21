@@ -11,8 +11,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 // UI/Styles/UI Components
 import "@/index.css";
 import Loader from "@/components/loader";
-
-// import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 // Types
 
@@ -62,7 +61,7 @@ function RootComponent() {
 				storageKey="vite-ui-theme"
 			>
 				{isFetching ? <Loader /> : <Outlet />}
-				{/* <Toaster position="top-center" richColors /> */}
+				<Toaster position="bottom-right" richColors />
 			</ThemeProvider>
 
 			<TanStackDevtools

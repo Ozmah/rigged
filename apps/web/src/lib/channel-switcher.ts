@@ -4,6 +4,8 @@ import { resetChatState, setChannelSwitching } from "@/stores/chat";
 import { resetUIState } from "@/stores/ui";
 import type { TwitchAPI } from "./twitch-api-client";
 
+// This needs to be integrated somewhere, doesn't make sense to just keep this here
+
 /**
  * Switches to a different Twitch channel
  * Resets all app state except auth and user preferences

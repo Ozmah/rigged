@@ -1,5 +1,6 @@
 import { Store } from "@tanstack/store";
-import type { TwitchChannel, TwitchUser } from "@/lib/twitch-schemas";
+import type { TwitchAPI } from "@/lib/twitch-api-client";
+import type { TwitchChannel, TwitchUser } from "@/types/twitch-schemas";
 
 /**
  * Persistible auth data (excludes transient states like loading/error)
@@ -15,6 +16,7 @@ interface PersistedAuthState {
 export interface AuthState extends PersistedAuthState {
 	isLoading: boolean;
 	error: string | null;
+	TwitchAPI?: TwitchAPI;
 }
 
 const AUTH_STORAGE_KEY = "rigged-auth-state";
@@ -132,6 +134,13 @@ export const setAuthSuccess = (
 		userState,
 		isLoading: false,
 		error: null,
+	}));
+};
+
+export const setTwitchAPI = (api: TwitchAPI) => {
+	authStore.setState((state) => ({
+		...state,
+		TwitchAPI: api,
 	}));
 };
 

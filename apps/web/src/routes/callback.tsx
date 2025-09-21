@@ -60,11 +60,11 @@ function AuthCallbackComponent() {
 			<div className="flex min-h-screen items-center justify-center bg-background">
 				<div className="text-center">
 					<h2 className="mb-2 font-bold text-2xl text-destructive">
-						Authentication Error
+						Error de Autenticación
 					</h2>
 					<p className="mb-4 text-muted-foreground">{authError}</p>
 					<p className="text-muted-foreground text-sm">
-						Redirecting to login...
+						De vuelta al login...
 					</p>
 				</div>
 			</div>

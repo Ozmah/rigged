@@ -3,7 +3,6 @@ import { useStore } from "@tanstack/react-store";
 import { useEffect } from "react";
 import { DevSettingsPanel } from "@/components/raffle/panels/dev-settings-panel";
 import { RafflePanel } from "@/components/raffle/panels/raffle-panel";
-import { ChatSettingsPanel } from "./panels/chat-settings-panel";
 // UI/Styles/UI Components
 import {
 	AlertDialog,
@@ -14,15 +13,20 @@ import {
 	AlertDialogFooter,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
+import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
 // Libs
 import { handleRaffleAction } from "@/lib/raffle-action-handler";
 // Types/Store State
 import {
 	canStartRaffle,
 	chatStore,
-	isThisMyStream,
 	hasWinners,
 	hideRaffleControls,
 	primaryButtonText,
@@ -34,7 +38,7 @@ import {
 	showVipsExtraTickets,
 } from "@/stores/chat";
 import { createRaffleUiAction } from "@/types/raffle-ui-factory";
-import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
+import { ChatSettingsPanel } from "./panels/chat-settings-panel";
 
 interface MobileSettingsSheetProps {
 	open: boolean;
@@ -45,21 +49,19 @@ interface MobileSettingsSheetProps {
 export function MobileSettingsSheet({
 	open,
 	onOpenChange,
-	eventSubHook
+	eventSubHook,
 }: MobileSettingsSheetProps) {
 	const participants = useStore(chatStore, (state) => state.participants);
 
 	// Derived state
 	const hasWinnersState = useStore(hasWinners);
 	const showCancelDialogState = useStore(showCancelDialog);
-	const isThisMyStreamState = useStore(isThisMyStream);
 
 	// Mount all derived state
 	useEffect(() => {
 		const unsubscribers = [
 			canStartRaffle.mount(),
 			hasWinners.mount(),
-			isThisMyStream.mount(),
 			showCancelDialog.mount(),
 			hideRaffleControls.mount(),
 			primaryButtonText.mount(),
@@ -81,10 +83,14 @@ export function MobileSettingsSheet({
 		<>
 			<Sheet open={open} onOpenChange={onOpenChange}>
 				<SheetContent className="w-full overflow-y-auto p-4 pt-10">
-					<TypographyH4>Ajustes de la Rifa</TypographyH4>
-					<TypographyMuted>
+					<SheetHeader className="p-0">
+						<SheetTitle className="font-['Cabinet_Grotesk'] font-semibold text-xl">
+							Ajustes de la Rifa
+						</SheetTitle>
+					</SheetHeader>
+					<SheetDescription>
 						Controla todos los aspectos de tu rifa desde aquí
-					</TypographyMuted>
+					</SheetDescription>
 					<div className="space-y-6 py-4">
 						{/* Raffle Panel */}
 						<RafflePanel />
