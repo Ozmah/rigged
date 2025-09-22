@@ -44,6 +44,11 @@ export function ChatSettingsPanel({
 	const context = useRouteContext({ from: "/_layout/" });
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
 	const modedChannels = useStore(authStore, (state) => state.modedChannels);
+	const currentChannelID = useStore(chatStore, (state) => {
+		return user?.id !== state.currentChannel?.broadcaster_id
+			? state.currentChannel?.broadcaster_id
+			: undefined;
+	});
 
 	// Derived state
 	const isThisMyStreamState = useStore(isThisMyStream);
@@ -59,6 +64,7 @@ export function ChatSettingsPanel({
 		};
 	}, []);
 
+	// TODO: Too much logic here, need to move this funciton elsewhere
 	const handleChannelSwitch = async (broadcasterId: string) => {
 		console.log("🎯 Canal seleccionado:", broadcasterId);
 
@@ -131,7 +137,10 @@ export function ChatSettingsPanel({
 				</div>
 				<div className="space-y-4">
 					{modedChannels && modedChannels.length > 0 && (
-						<Select onValueChange={handleChannelSwitch}>
+						<Select
+							value={currentChannelID}
+							onValueChange={handleChannelSwitch}
+						>
 							<SelectTrigger className="w-full">
 								<SelectValue placeholder="Cambia de canal" />
 							</SelectTrigger>
