@@ -2,6 +2,7 @@ import { useStore } from "@tanstack/react-store";
 import { useEffect } from "react";
 import { authStore } from "@/stores/auth";
 import { chatStore, isThisMyStream } from "@/stores/chat";
+import type { TwitchChannel } from "@/types/twitch-schemas";
 
 // Coloring JSON
 function syntaxHighlightJSON(json: string): string {
@@ -61,20 +62,14 @@ export function ShowRaffleState() {
 		};
 	}
 
-	type AnonChannel = {
-		id: string;
-		login: string;
-		name: string;
-	};
-
-	function anonymizeChannel(channel: AnonChannel) {
+	function anonymizeChannel(channel: TwitchChannel): TwitchChannel {
 		if (!shouldAnonymize) return channel;
 
 		return {
 			...channel,
-			id: "******",
-			login: "******",
-			name: channel.name,
+			broadcaster_id: "******",
+			broadcaster_login: "******",
+			broadcaster_name: channel.broadcaster_name,
 		};
 	}
 

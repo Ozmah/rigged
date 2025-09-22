@@ -1,7 +1,7 @@
 import { GiftIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { MobileSettingsSheet } from "@/components/raffle/mobile-sheet";
+import { Button } from "@/components/ui/button";
 import type { TwitchEventSubHookConstructor } from "@/hooks/useTwitchEventSub";
 
 interface MicroMenuMobileProps {
@@ -9,7 +9,10 @@ interface MicroMenuMobileProps {
 	eventSubHook: TwitchEventSubHookConstructor;
 }
 
-export function MicroMenuMobile({ className = "", eventSubHook }: MicroMenuMobileProps) {
+export function MicroMenuMobile({
+	className = "",
+	eventSubHook,
+}: MicroMenuMobileProps) {
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
 
 	return (

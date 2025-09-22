@@ -30,7 +30,6 @@ import {
 	primaryButtonVariant,
 	secondaryButtonDisabled,
 	secondaryButtonText,
-	showDropdownMenu,
 	showSubsExtraTickets,
 	showVipsExtraTickets,
 } from "@/stores/chat";
@@ -44,12 +43,17 @@ export function RafflePanel({ className = "" }: RafflePanel) {
 	const device = useDeviceDetection();
 	const baseId = useId();
 	const raffleConfig = useStore(chatStore, (state) => state.raffleConfig);
+	const hasParticipants = useStore(
+		chatStore,
+		(state) => state.participants.length > 0,
+	);
 	const isCapturing = useStore(chatStore, (state) => state.isCapturing);
 	const isRaffleRigged = useStore(chatStore, (state) => state.isRaffleRigged);
+	const showDropdownMenuState = isCapturing && hasParticipants;
 
 	// Derived state
 	const canStartRaffleState = useStore(canStartRaffle);
-	const showDropdownMenuState = useStore(showDropdownMenu);
+
 	const hideRaffleControlsState = useStore(hideRaffleControls);
 	const primaryButtonTextState = useStore(primaryButtonText);
 	const primaryButtonVariantState = useStore(primaryButtonVariant);
@@ -62,7 +66,6 @@ export function RafflePanel({ className = "" }: RafflePanel) {
 	useEffect(() => {
 		const unsubscribers = [
 			canStartRaffle.mount(),
-			showDropdownMenu.mount(),
 			hideRaffleControls.mount(),
 			primaryButtonText.mount(),
 			primaryButtonVariant.mount(),
@@ -147,6 +150,13 @@ export function RafflePanel({ className = "" }: RafflePanel) {
 							>
 								{primaryButtonTextState}
 							</Button>
+							{/* Previously showDropdownMenuState was a derived state but since this same
+							component is used in the mobile version, if the sheet menu unmounts (user closes
+							the menu) and the state changes in a way that would affect the sheet UI
+							(Participants change from 0 to 1+) this causes the derived state to lazily
+							load until the user opens the menu, causing the change of the button happening
+							at the same time the menu is being opened, making the changes in the UI visible.
+							Now we use reactive calculated state.*/}
 							{showDropdownMenuState && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>

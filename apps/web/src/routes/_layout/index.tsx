@@ -46,7 +46,7 @@ function RaffleComponent() {
 	const { version } = useGitHubVersion("Ozmah", "rigged");
 
 	// EventSub auto connects when authenticated
-	// DO NOT CALL THIS HOOK ANYWHERE ELSE, 
+	// DO NOT CALL THIS HOOK ANYWHERE ELSE,
 	// its constructor creates a new subscription
 	const eventSubHook = useTwitchEventSub();
 	const { isConnected, isConnecting } = eventSubHook;
@@ -93,7 +93,11 @@ function RaffleComponent() {
 				</Badge>
 			</div>
 			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
-				{device.isMobile ? <MicroMenuMobile eventSubHook={eventSubHook} /> : <MicroMenu />}
+				{device.isMobile ? (
+					<MicroMenuMobile eventSubHook={eventSubHook} />
+				) : (
+					<MicroMenu />
+				)}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && (
@@ -101,6 +105,7 @@ function RaffleComponent() {
 				)}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+				{/* Next in the list of migrations, we'll need some work to move chat to its own component */}
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
@@ -110,7 +115,9 @@ function RaffleComponent() {
 							size="md"
 						/>
 						<TypographyH4>
-							Chat de {currentChannel?.name}
+							{currentChannel?.broadcaster_name
+								? `Chat de ${currentChannel?.broadcaster_name}`
+								: "Error al conectar al chat"}
 						</TypographyH4>
 						<div className="flex flex-1 justify-end">
 							{/* Will create an array of badges to show
@@ -170,16 +177,18 @@ function RaffleComponent() {
 											)}
 										</div>
 										<div className="flex flex-wrap justify-center gap-2">
-											{raffleWinners.map((winner) => (
-												<motion.div
-													initial={{ scale: 0 }}
-													animate={{ scale: 1 }}
-													key={winner.userId}
-													className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
-												>
-													{winner.displayName}
-												</motion.div>
-											))}
+											{raffleWinners.map(
+												(winner, index) => (
+													<motion.div
+														initial={{ scale: 0 }}
+														animate={{ scale: 1 }}
+														key={`${winner.userId}${index}`}
+														className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
+													>
+														{winner.displayName}
+													</motion.div>
+												),
+											)}
 										</div>
 									</motion.div>
 								)}

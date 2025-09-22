@@ -6,13 +6,13 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { MessageAnalysisTool } from "@/components/debug/message-analysis-tool";
 import { ShowRaffleState } from "@/components/debug/show-raffle-state";
 import { ThemeProvider } from "@/components/theme-provider";
 // UI/Styles/UI Components
 import "@/index.css";
 import Loader from "@/components/loader";
-
-// import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 // Types
 
@@ -62,7 +62,7 @@ function RootComponent() {
 				storageKey="vite-ui-theme"
 			>
 				{isFetching ? <Loader /> : <Outlet />}
-				{/* <Toaster position="top-center" richColors /> */}
+				<Toaster position="bottom-right" richColors />
 			</ThemeProvider>
 
 			<TanStackDevtools
@@ -74,6 +74,10 @@ function RootComponent() {
 					{
 						name: "Raffle State",
 						render: <ShowRaffleState />,
+					},
+					{
+						name: "Message Analysis",
+						render: <MessageAnalysisTool />,
 					},
 					// {
 					// 	name: 'EventSub State',

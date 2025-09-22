@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Header } from "@/components/header";
-import { authStore } from "@/stores/auth";
+import { authStore, setTwitchAPI } from "@/stores/auth";
 import { chatStore, setCurrentChannel } from "@/stores/chat";
 
 export const Route = createFileRoute("/_layout")({
-	beforeLoad: ({ location }) => {
+	beforeLoad: ({ context, location }) => {
 		if (!authStore.state.isAuthenticated) {
 			throw redirect({
 				to: "/login",
@@ -16,10 +16,14 @@ export const Route = createFileRoute("/_layout")({
 
 		if (!chatStore.state.currentChannel && authStore.state.user) {
 			setCurrentChannel({
-				id: authStore.state.user.id,
-				login: authStore.state.user.login,
-				name: authStore.state.user.display_name,
+				broadcaster_id: authStore.state.user.id,
+				broadcaster_login: authStore.state.user.login,
+				broadcaster_name: authStore.state.user.display_name,
 			});
+		}
+
+		if (!authStore.state.TwitchAPI) {
+			setTwitchAPI(context.twitchAPI);
 		}
 	},
 	component: Layout,

@@ -276,7 +276,7 @@ export class TwitchEventSubWebSocket {
 				break;
 
 			case "session_keepalive":
-				console.log("Received keepalive - resetting timeout");
+				// console.log("Received keepalive - resetting timeout");
 				this.setupKeepalive(EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS);
 				break;
 
@@ -286,15 +286,15 @@ export class TwitchEventSubWebSocket {
 					message.metadata.subscription_type ===
 						"channel.chat.message"
 				) {
-					console.log(
-						"Received chat message notification - calling message callback",
-					);
+					// console.log(
+					// 	"Received chat message notification - calling message callback",
+					// );
 					this.onMessageCallback?.(message.payload.event);
 				}
 				// CRITICAL FIX: Reset keepalive timeout on ANY message, including notifications
-				console.log(
-					"Notification received - resetting keepalive timeout",
-				);
+				// console.log(
+				// 	"Notification received - resetting keepalive timeout",
+				// );
 				this.setupKeepalive(EVENTSUB_KEEPALIVE_TIMEOUT_SECONDS);
 				break;
 
@@ -375,9 +375,9 @@ export class TwitchEventSubWebSocket {
 			(timeoutSeconds + EVENTSUB_KEEPALIVE_BUFFER_SECONDS) * 1000,
 		);
 
-		console.log(
-			`Keepalive timeout set for ${timeoutSeconds + EVENTSUB_KEEPALIVE_BUFFER_SECONDS} seconds`,
-		);
+		// console.log(
+		// 	`Keepalive timeout set for ${timeoutSeconds + EVENTSUB_KEEPALIVE_BUFFER_SECONDS} seconds`,
+		// );
 	}
 
 	/**
