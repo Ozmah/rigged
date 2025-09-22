@@ -105,19 +105,11 @@ export function useTwitchEventSub() {
 	const handleConnectionChange = useCallback((connected: boolean) => {
 		if (connected) {
 			setConnectionStatus(CONNECTION_STATUS.CONNECTED);
-			toast.success("🎮 Chat conectado", {
-				description:
-					"Conectado al chat de Twitch. ¡Los mensajes aparecerán en tiempo real!",
-				duration: 4000,
-				closeButton: true,
-			});
+			// This will be replaced with the logger.
+			console.log("Chat connected");
 		} else {
 			setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-			toast.info("📡 Chat desconectado", {
-				description: "Desconectado del chat de Twitch.",
-				duration: 3000,
-				closeButton: true,
-			});
+			console.log("Chat disconnected");
 		}
 	}, []);
 

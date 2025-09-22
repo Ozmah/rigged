@@ -105,6 +105,20 @@ export interface MessageAnalysis {
 	};
 }
 
+export interface KeywordMatch {
+	mode: "simple" | "advanced";
+	expected: string;
+	received: string;
+	caseSensitive: boolean;
+	matches: boolean;
+}
+
+export interface AdvancedFilters {
+	messageParticipating: boolean;
+	userParticipating: boolean;
+	finalResult: boolean;
+}
+
 /**
  * Analyzes a message through the same logic as addChatMessage
  * but without modifying state - pure analysis function
@@ -146,8 +160,8 @@ export const analyzeMessageFlow = (
 	};
 
 	// Paso 3 & 4: Participation logic (replica exacta de addChatMessage)
-	let keywordMatch;
-	let advancedFilters;
+	let keywordMatch: KeywordMatch;
+	let advancedFilters: AdvancedFilters | undefined;
 	let messageWillBeMarkedAsParticipant = false;
 
 	if (captureState.isCapturing) {

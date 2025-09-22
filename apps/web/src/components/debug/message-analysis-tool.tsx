@@ -154,6 +154,7 @@ export const MessageAnalysisTool: React.FC = () => {
 							.reverse()
 							.map((analysis) => (
 								<button
+									type="button"
 									key={`${analysis.message.id}-${analysis.timestamp.getTime()}`}
 									onClick={() =>
 										setSelectedAnalysis(analysis)
