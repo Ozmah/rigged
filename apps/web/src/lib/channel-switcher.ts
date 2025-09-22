@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import type { RiggedSettingsProps } from "@/components/raffle/rigged-settings";
+import { authStore } from "@/stores/auth";
 import { resetChatState, setChannelSwitching } from "@/stores/chat";
 import { resetUIState } from "@/stores/ui";
 import type { TwitchAPI } from "./twitch-api-client";
@@ -43,7 +44,8 @@ export const switchToChannel = async (
 		}
 
 		console.log("📝 Resetting app state...");
-		resetChatState();
+		const useUserSettings = broadcasterId === authStore.state.user?.id;
+		resetChatState(useUserSettings);
 		resetUIState();
 
 		console.log("🎯 Connecting to new channel...");
@@ -58,6 +60,7 @@ export const switchToChannel = async (
 		console.log("✅ Channel switch completed successfully");
 		setChannelSwitching(false);
 	} catch (error) {
+		resetChatState();
 		setChannelSwitching(false);
 		console.error("❌ Channel switch failed:", error);
 

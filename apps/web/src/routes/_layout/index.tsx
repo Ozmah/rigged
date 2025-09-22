@@ -105,6 +105,7 @@ function RaffleComponent() {
 				)}
 			</div>
 			<div className="col-span-1 col-start-1 row-span-4 row-start-2 p-2 sm:col-span-3 sm:col-start-4 sm:p-0 lg:pr-2 2xl:col-span-4 2xl:col-start-5 2xl:row-span-5">
+				{/* Next in the list of migrations, we'll need some work to move chat to its own component */}
 				{/* Chat Section */}
 				<section className="rounded-lg border">
 					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
@@ -114,7 +115,9 @@ function RaffleComponent() {
 							size="md"
 						/>
 						<TypographyH4>
-							Chat de {currentChannel?.broadcaster_name}
+							{currentChannel?.broadcaster_name
+								? `Chat de ${currentChannel?.broadcaster_name}`
+								: "Error al conectar al chat"}
 						</TypographyH4>
 						<div className="flex flex-1 justify-end">
 							{/* Will create an array of badges to show
@@ -174,16 +177,18 @@ function RaffleComponent() {
 											)}
 										</div>
 										<div className="flex flex-wrap justify-center gap-2">
-											{raffleWinners.map((winner) => (
-												<motion.div
-													initial={{ scale: 0 }}
-													animate={{ scale: 1 }}
-													key={winner.userId}
-													className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
-												>
-													{winner.displayName}
-												</motion.div>
-											))}
+											{raffleWinners.map(
+												(winner, index) => (
+													<motion.div
+														initial={{ scale: 0 }}
+														animate={{ scale: 1 }}
+														key={`${winner.userId}${index}`}
+														className="rounded-lg border border-yellow-300/50 bg-white/80 px-4 py-2 font-semibold text-yellow-800 shadow-sm dark:border-yellow-600/30 dark:bg-yellow-900/30 dark:text-yellow-200"
+													>
+														{winner.displayName}
+													</motion.div>
+												),
+											)}
 										</div>
 									</motion.div>
 								)}

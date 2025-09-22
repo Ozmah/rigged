@@ -73,6 +73,7 @@ export interface PersistedRaffleConfig {
 	subsExtraValue: number;
 	vipsExtraTickets: boolean;
 	vipsExtraValue: number;
+	ignoreStreamer: boolean;
 	ignoreMods: boolean;
 	ignoreSubs: boolean;
 	ignoreVips: boolean;
@@ -127,6 +128,8 @@ export interface ChatState {
 	};
 }
 
+// TODO: Add localStorage for settings specific to each channel, this will require a major overhaul
+
 /**
  * Save auth state to localStorage
  */
@@ -141,6 +144,7 @@ export const saveRaffleConfigState = (state: RaffleConfig): void => {
 			subsExtraValue: state.subsExtraValue,
 			vipsExtraTickets: state.vipsExtraTickets,
 			vipsExtraValue: state.vipsExtraValue,
+			ignoreStreamer: state.ignoreStreamer,
 			ignoreMods: state.ignoreMods,
 			ignoreSubs: state.ignoreSubs,
 			ignoreVips: state.ignoreVips,
@@ -176,6 +180,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
 			subsExtraValue: parsed.subsExtraValue,
 			vipsExtraTickets: parsed.vipsExtraTickets,
 			vipsExtraValue: parsed.vipsExtraValue,
+			ignoreStreamer: parsed.ignoreStreamer,
 			ignoreMods: parsed.ignoreMods,
 			ignoreSubs: parsed.ignoreSubs,
 			ignoreVips: parsed.ignoreVips,
@@ -194,6 +199,8 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * Connection State:
  * - connectionStatus: "disconnected" - Initial offline state before EventSub connection
  * - connectionError: null - No connection errors present at startup
+ * - isSwitchingChannel: false - Channel switching flag to prevent auto-connect during transitions
+ * - currentChannel: undefined - No channel is connected initially
  *
  * Chat Configuration:
  * - messages: [] - Empty message history at application start
@@ -209,6 +216,7 @@ export const loadPersistedRaffleConfigState = (): Partial<RaffleConfig> => {
  * - subsExtraValue: 1 - Number of extra tickets for subscribers when enabled
  * - vipsExtraTickets: false - Extra tickets for VIPs disabled by default
  * - vipsExtraValue: 1 - Number of extra tickets for VIPs when enabled
+ * - ignoreStreamer: true - Streamer cannot participate in raffles by default
  * - ignoreMods: false - Moderators can participate in raffles by default
  * - ignoreSubs: false - Subscribers can participate in raffles by default
  * - ignoreVips: false - VIPs can participate in raffles by default
@@ -251,6 +259,7 @@ const initialState: ChatState = {
 		subsExtraValue: 1,
 		vipsExtraTickets: false,
 		vipsExtraValue: 1,
+		ignoreStreamer: true,
 		ignoreMods: false,
 		ignoreSubs: false,
 		ignoreVips: false,
@@ -391,6 +400,8 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 						`[Rigged Bot] ${participant.displayName} ahora está participando`,
 					);
 				}
+			} else {
+				message.isParticipant = false;
 			}
 		}
 
@@ -413,14 +424,14 @@ export const addChatMessage = (eventMessage: EventSubChatMessage) => {
 };
 
 export const startTestMessageGeneration = () => {
-	const chatterNames = [
-		"CarlosDMBot",
-		"BrayamsBot",
-		"EbrionBot",
-		"ChecaBot",
-		"RammsirisBot",
-		"NavarritoBot",
-	];
+	const chatters: Record<string, string> = {
+		47293851: "CarlosDMBot",
+		92816374: "BrayamsBot",
+		15647829: "EbrionBot",
+		83529406: "ChecaBot",
+		67401253: "RammsirisBot",
+		29857463: "NavarritoBot",
+	};
 
 	const GAMING_MESSAGES = [
 		"gg ez",
@@ -487,17 +498,18 @@ export const startTestMessageGeneration = () => {
 	];
 
 	const interval = setInterval(() => {
-		const randomChatter =
-			chatterNames[Math.floor(Math.random() * chatterNames.length)];
+		const entries = Object.entries(chatters);
+		const randomIndex = Math.floor(Math.random() * entries.length);
+		const randomChatter = entries[randomIndex];
 		const randomMessage =
 			ALL_MESSAGES[Math.floor(Math.random() * ALL_MESSAGES.length)];
 		const fakeMessage: EventSubChatMessage = {
 			broadcaster_user_id: "77305523",
 			broadcaster_user_login: "ozmah",
 			broadcaster_user_name: "Ozmah",
-			chatter_user_id: `${Math.random().toString().slice(2, 10)}`,
-			chatter_user_login: randomChatter.toLowerCase(),
-			chatter_user_name: randomChatter,
+			chatter_user_id: randomChatter[0],
+			chatter_user_login: randomChatter[1].toLowerCase(),
+			chatter_user_name: randomChatter[1],
 			message_id: `${Math.random().toString(36).slice(2, 11)}`,
 			message: {
 				text: randomMessage,
@@ -508,11 +520,11 @@ export const startTestMessageGeneration = () => {
 					},
 				],
 			},
-			color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Random hex color
-			badges: [], // Empty array for simplicity
+			color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+			badges: [],
 			message_type: "text",
-			cheer: undefined, // No bits for fake messages
-			reply: undefined, // No replies for fake messages
+			cheer: undefined,
+			reply: undefined,
 			channel_points_custom_reward_id: undefined,
 		};
 		addChatMessage(fakeMessage);
@@ -548,6 +560,32 @@ export const stopTestMessageGeneration = () => {
 	clearInterval(currentIntervalId);
 };
 
+// This is going to be under heavy testing, it's related to a problem
+// caused by using a keyword that might match an emote. Given the keyword "KeKw",
+// if a user sends "KEKW" (To Twitch, this is just text, to BetterTTV -the twitch
+// extension-, this is an emote), Twitch will send us something like "KEKW ͏",
+// that translates, using the devtools, to "KEKW[SPACE][CGJ]":
+//
+// 1. U+0020 = Regular space after "KEKW"
+// 2. U+034F = COMBINING GRAPHEME JOINER (CGJ)
+//
+// This is something we need to filter and we are experimenting with this function.
+
+function cleanInvisibleChars(str: string): string {
+	return (
+		str
+			.replace(
+				// biome-ignore lint/suspicious/noControlCharactersInRegex: Production function that intentionally removes Unicode control characters to fix Twitch/BetterTTV emote interaction bug
+				/[\u0000-\u001F\u007F-\u009F\u00A0\u200B-\u200D\u2060\uFEFF]/g,
+				"",
+			)
+			// Remove combining characters separately (they combine with other characters)
+			.replace(/\u034F/g, "")
+			.replace(/\s+/g, " ")
+			.trim()
+	);
+}
+
 /**
  * Checks if a message qualifies for raffle participation
  * @param message - Message content
@@ -558,13 +596,14 @@ function checkMessageRaffleParticipation(
 	message: string,
 	config: RaffleConfig,
 ): boolean {
+	const cleanMessage = cleanInvisibleChars(message);
 	// Case sensitive logic
 	const messageText = config.caseSensitive
-		? message.trim()
-		: message.trim().toLowerCase();
+		? cleanMessage
+		: cleanMessage.toLowerCase();
 	const keyword = config.caseSensitive
-		? config.keyword
-		: config.keyword.toLowerCase();
+		? config.keyword.trim()
+		: config.keyword.trim().toLowerCase();
 
 	const isParticipating = keyword === messageText;
 
@@ -600,6 +639,13 @@ function checkUserRaffleParticipation(
 		chatStore.state.winners.some(
 			(winner) => winner.userId === message.userId,
 		)
+	) {
+		isParticipant = false;
+	}
+
+	if (
+		config.ignoreStreamer &&
+		message.badges.some((badge) => badge.setId === "broadcaster")
 	) {
 		isParticipant = false;
 	}
@@ -689,57 +735,17 @@ export const rigTheRaffle = () => {
 		isRaffleRigged: true,
 	}));
 
-	if (chatStore.state.currentChannel && authStore.state.user) {
+	if (
+		chatStore.state.currentChannel &&
+		authStore.state.user &&
+		chatStore.state.raffleConfig.sendRaffleUpdates
+	) {
 		authStore.state.TwitchAPI?.sendChatMessage(
 			chatStore.state.currentChannel.broadcaster_id,
 			authStore.state.user.id,
 			"[Rigged Bot] ¡Ni uno más! Ya vamos a elegir al ganador",
 		);
 	}
-};
-
-/**
- * Executes raffle and selects winners
- * @returns Selected winners
- */
-export const executeRaffle = (): RaffleParticipant => {
-	chatStore.setState((state) => {
-		const availableParticipants = state.raffleConfig.removeWinners
-			? state.participants.filter((p) => !p.isWinner)
-			: state.participants;
-
-		// No participants available
-		// Edge case, needs to be handled gracefully
-		// If all participants are winners and
-		// removeWinners is active (This is not handled)
-
-		// Dervied state with the .filter((p) => !p.isWinner)
-		// logic to block the "pick a winner" button
-		if (availableParticipants.length === 0) {
-			return state;
-		}
-
-		const selectedWinner = selectRandomParticipant(availableParticipants);
-		selectedWinner.isWinner = true;
-
-		return {
-			...state,
-			winners: [...state.winners, selectedWinner],
-			currentRound: state.currentRound + 1,
-		};
-	});
-
-	console.log(chatStore.state.winners.at(-1));
-	if (chatStore.state.currentChannel && authStore.state.user) {
-		authStore.state.TwitchAPI?.sendChatMessage(
-			chatStore.state.currentChannel.broadcaster_id,
-			authStore.state.user.id,
-			`[Rigged Bot] ¡Felicidades! Ganador: ${chatStore.state.winners.at(-1)?.displayName}`,
-		);
-	}
-
-	// biome-ignore lint/style/noNonNullAssertion: Need to make this clearer and avoid using !
-	return chatStore.state.winners.at(-1)!;
 };
 
 /**
@@ -864,15 +870,14 @@ export const getRaffleStats = () => {
  * Preserves: raffleConfig (user preferences)
  * Resets: messages, participants, winners, connection, stats
  */
-export const resetChatState = () => {
+export const resetChatState = (useUserSettings?: boolean) => {
 	chatStore.setState((state) => ({
 		...state,
 		messages: [],
 
-		raffleConfig: {
-			...state.raffleConfig,
-			sendRaffleUpdates: true,
-		},
+		raffleConfig: useUserSettings
+			? { ...state.raffleConfig, ...loadPersistedRaffleConfigState() }
+			: { ...state.raffleConfig, sendRaffleUpdates: true },
 
 		participants: [],
 		winners: [],
@@ -1000,15 +1005,60 @@ export const raffleStateActions: RaffleStateActions = {
 	},
 
 	executeRaffle: () => {
-		const winner = executeRaffle();
-		console.log("Raffle winner:", winner);
+		let winner = null;
 
-		if (winner) {
+		const config = chatStore.state.raffleConfig;
+		const state = chatStore.state;
+		const allParticipantsAreWinnersReactive =
+			config.advanced &&
+			config.removeWinners &&
+			state.participants.length === state.winners.length &&
+			state.participants.length > 0;
+
+		if (!allParticipantsAreWinnersReactive) {
+			chatStore.setState((state) => {
+				const availableParticipants = state.raffleConfig.removeWinners
+					? state.participants.filter((p) => !p.isWinner)
+					: state.participants;
+
+				if (availableParticipants.length === 0) {
+					return state;
+				}
+
+				const selectedWinner = selectRandomParticipant(
+					availableParticipants,
+				);
+				selectedWinner.isWinner = true;
+
+				return {
+					...state,
+					winners: [...state.winners, selectedWinner],
+					currentRound: state.currentRound + 1,
+				};
+			});
+
+			if (chatStore.state.currentChannel && authStore.state.user) {
+				authStore.state.TwitchAPI?.sendChatMessage(
+					chatStore.state.currentChannel.broadcaster_id,
+					authStore.state.user.id,
+					`[Rigged Bot] ¡Felicidades! Ganador: ${chatStore.state.winners.at(-1)?.displayName}`,
+				);
+			}
+		}
+
+		if (chatStore.state.winners.length > 0) {
+			// biome-ignore lint/style/noNonNullAssertion: Need to make this clearer and avoid using !
+			winner = chatStore.state.winners.at(-1)!;
+		}
+
+		if (winner && !allParticipantsAreWinnersReactive) {
 			toast.success("¡Felicidades!", {
 				description: `Ganador: ${winner.displayName}`,
 				duration: 8000,
 				closeButton: true,
 			});
+		} else if (winner && allParticipantsAreWinnersReactive) {
+			return winner;
 		} else {
 			toast.error("❌ Hubo un problema con el sorteo", {
 				duration: 4000,
@@ -1182,6 +1232,21 @@ export const hasWinners = new Derived({
 });
 
 /*** Advanced configuration ***/
+export const allParticipantsAreWinners = new Derived({
+	fn: () => {
+		const config = chatStore.state.raffleConfig;
+		const state = chatStore.state;
+
+		return (
+			config.advanced &&
+			config.removeWinners &&
+			state.participants.length === state.winners.length &&
+			state.participants.length > 0
+		);
+	},
+	deps: [chatStore],
+});
+
 export const showSubsExtraTickets = new Derived({
 	fn: () => {
 		const config = chatStore.state.raffleConfig;
@@ -1231,6 +1296,11 @@ export const secondaryButtonText = new Derived({
 		const state = chatStore.state;
 
 		if (participants === 0) return "Sin participantes";
+		if (
+			state.raffleConfig.removeWinners &&
+			participants === chatStore.state.winners.length
+		)
+			return "Todos ganaron ya";
 		if (state.isRaffleRigged) {
 			return hasWinners.state
 				? "¿Elegir otro ganador?"

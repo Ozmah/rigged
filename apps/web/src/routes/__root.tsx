@@ -6,6 +6,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { MessageAnalysisTool } from "@/components/debug/message-analysis-tool";
 import { ShowRaffleState } from "@/components/debug/show-raffle-state";
 import { ThemeProvider } from "@/components/theme-provider";
 // UI/Styles/UI Components
@@ -73,6 +74,10 @@ function RootComponent() {
 					{
 						name: "Raffle State",
 						render: <ShowRaffleState />,
+					},
+					{
+						name: "Message Analysis",
+						render: <MessageAnalysisTool />,
 					},
 					// {
 					// 	name: 'EventSub State',
