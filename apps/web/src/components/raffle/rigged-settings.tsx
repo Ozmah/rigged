@@ -55,15 +55,18 @@ export function RiggedSettings({ eventSubHook }: RiggedSettingsProps) {
 
 	return (
 		<>
-			<div className="@container flex flex-col justify-center space-y-4 rounded-lg bg-card px-4 py-4">
-				{/* Main Raffle Controls */}
-				{microMenuSelectedState === "raffle" && <RafflePanel />}
-				{microMenuSelectedState === "settings" && (
-					<ChatSettingsPanel eventSubHook={eventSubHook} />
-				)}
-				{microMenuSelectedState === "dev" && <DevSettingsPanel />}
+			<div className="-outline-offset-1 bg-card outline outline-white/10 sm:rounded-xl md:col-span-2">
+				<div className="px-4 py-6 sm:p-8">
+					{/* Main Raffle Controls */}
+					{microMenuSelectedState === "raffle" && <RafflePanel />}
+					{microMenuSelectedState === "settings" && (
+						<ChatSettingsPanel eventSubHook={eventSubHook} />
+					)}
+					{microMenuSelectedState === "dev" && <DevSettingsPanel />}
+				</div>
 			</div>
-			{/* AlertDialog for Raffle Cancellation */}
+
+			{/* AlertDialog for Raffle Cancellation, I know this is ugly, gimme a break, will fix soon-ish */}
 			<AlertDialog
 				open={showCancelDialogState}
 				onOpenChange={(isOpen) => {

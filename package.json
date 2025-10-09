@@ -1,7 +1,7 @@
 {
 	"name": "rigged",
 	"devDependencies": {
-		"@biomejs/biome": "^2.2.0"
+		"@biomejs/biome": "^2.2.5"
 	},
 	"packageManager": "bun@1.2.15",
 	"private": true,

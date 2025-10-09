@@ -1,4 +1,4 @@
-import { Store } from "@tanstack/store";
+import { Store } from "@tanstack/react-store";
 
 // Need to evaluate if this store is justified
 

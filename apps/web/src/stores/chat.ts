@@ -1,4 +1,4 @@
-import { Derived, Store } from "@tanstack/store";
+import { Derived, Store } from "@tanstack/react-store";
 import { toast } from "sonner";
 import type { EventSubChatMessage } from "@/lib/twitch-api-client";
 import { authStore } from "@/stores/auth";

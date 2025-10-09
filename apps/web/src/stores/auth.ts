@@ -1,4 +1,4 @@
-import { Store } from "@tanstack/store";
+import { Store } from "@tanstack/react-store";
 import type { TwitchAPI } from "@/lib/twitch-api-client";
 import type { TwitchChannel, TwitchUser } from "@/types/twitch-schemas";
 

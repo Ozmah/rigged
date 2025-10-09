@@ -92,6 +92,7 @@ function RaffleComponent() {
 					{version}
 				</Badge>
 			</div>
+			{/* Side Menu */}
 			<div className="col-start-1 row-span-5 row-start-8 self-end sm:row-start-2 sm:self-auto 2xl:col-start-2">
 				{device.isMobile ? (
 					<MicroMenuMobile eventSubHook={eventSubHook} />
@@ -99,6 +100,7 @@ function RaffleComponent() {
 					<MicroMenu />
 				)}
 			</div>
+			{/* Config Menu Container */}
 			<div className="col-span-1 col-start-1 row-span-6 row-start-2 sm:col-span-2 sm:col-start-2 2xl:col-start-3">
 				{!device.isMobile && (
 					<RiggedSettings eventSubHook={eventSubHook} />
@@ -108,7 +110,7 @@ function RaffleComponent() {
 				{/* Next in the list of migrations, we'll need some work to move chat to its own component */}
 				{/* Chat Section */}
 				<section className="rounded-lg border">
-					<div className="flex items-center justify-start border-b bg-card px-4 py-4">
+					<div className="flex items-center justify-start border-b bg-card px-4 py-6 sm:p-8 sm:pb-4">
 						<ServerStatus
 							status={connectionStatus}
 							ping={true}
